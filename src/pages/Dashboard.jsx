@@ -1,4 +1,15 @@
 import { useEffect, useState } from "react";
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+
 import { supabase } from "../lib/supabase";
 
 export default function Dashboard() {
@@ -14,25 +25,35 @@ export default function Dashboard() {
 
   const cargarDatos = async () => {
 
-    const { data: entradasData } = await supabase
-      .from("entradas")
-      .select("*");
+    const { data: entradasData } =
+      await supabase
+        .from("entradas")
+        .select("*")
+        .order("fecha", {
+          ascending: true,
+        });
 
-    const { data: salidasData } = await supabase
-      .from("salidas")
-      .select("*");
+    const { data: salidasData } =
+      await supabase
+        .from("salidas")
+        .select("*")
+        .order("fecha", {
+          ascending: true,
+        });
 
     setEntradas(entradasData || []);
     setSalidas(salidasData || []);
   };
 
   const totalEntradas = entradas.reduce(
-    (acc, item) => acc + Number(item.monto),
+    (acc, item) =>
+      acc + Number(item.monto),
     0
   );
 
   const totalSalidas = salidas.reduce(
-    (acc, item) => acc + Number(item.monto),
+    (acc, item) =>
+      acc + Number(item.monto),
     0
   );
 
@@ -41,19 +62,58 @@ export default function Dashboard() {
     totalEntradas -
     totalSalidas;
 
+  const productosMap = {};
+
+  entradas.forEach((entrada) => {
+
+    if (!productosMap[entrada.producto]) {
+      productosMap[entrada.producto] = 0;
+    }
+
+    productosMap[entrada.producto] += Number(
+      entrada.cantidad
+    );
+  });
+
+  const productos = Object.entries(productosMap);
+
+  const chartData = [];
+
+  entradas.forEach((entrada) => {
+
+    chartData.push({
+      fecha: entrada.fecha,
+      ingresos: Number(entrada.monto),
+      salidas: 0,
+    });
+  });
+
+  salidas.forEach((salida) => {
+
+    chartData.push({
+      fecha: salida.fecha,
+      ingresos: 0,
+      salidas: Number(salida.monto),
+    });
+  });
+
+  chartData.sort((a, b) =>
+    new Date(a.fecha) - new Date(b.fecha)
+  );
+
   return (
 
-    <div>
+    <div className="text-white">
 
       <h1 className="text-4xl font-bold mb-8">
         Inicio
       </h1>
 
-      <div className="grid md:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
 
-        <div className="bg-slate-800 p-6 rounded-2xl">
+        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
 
-          <h2 className="text-xl mb-2">
+          <h2 className="text-gray-400 mb-2">
             Dinero Empresa
           </h2>
 
@@ -63,9 +123,9 @@ export default function Dashboard() {
 
         </div>
 
-        <div className="bg-slate-800 p-6 rounded-2xl">
+        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
 
-          <h2 className="text-xl mb-2">
+          <h2 className="text-gray-400 mb-2">
             Entradas
           </h2>
 
@@ -75,9 +135,9 @@ export default function Dashboard() {
 
         </div>
 
-        <div className="bg-slate-800 p-6 rounded-2xl">
+        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
 
-          <h2 className="text-xl mb-2">
+          <h2 className="text-gray-400 mb-2">
             Salidas
           </h2>
 
@@ -87,45 +147,143 @@ export default function Dashboard() {
 
         </div>
 
+        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+
+          <h2 className="text-gray-400 mb-2">
+            Balance
+          </h2>
+
+          <p className="text-4xl font-bold text-yellow-400">
+            {totalEntradas - totalSalidas >= 0
+              ? "POSITIVO"
+              : "NEGATIVO"}
+          </p>
+
+        </div>
+
       </div>
 
-      <div className="bg-slate-800 p-6 rounded-2xl">
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+
+        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+
+          <h2 className="text-2xl font-bold mb-6">
+            Productos Más Vendidos
+          </h2>
+
+          <div className="space-y-5">
+
+            {productos.map(([producto, cantidad]) => (
+
+              <div key={producto}>
+
+                <div className="flex justify-between mb-2">
+
+                  <span>
+                    {producto}
+                  </span>
+
+                  <span>
+                    {cantidad}
+                  </span>
+
+                </div>
+
+                <div className="w-full bg-slate-700 rounded-full h-6">
+
+                  <div
+                    className="bg-cyan-500 h-6 rounded-full"
+                    style={{
+                      width: `${Math.min(
+                        cantidad * 10,
+                        100
+                      )}%`,
+                    }}
+                  ></div>
+
+                </div>
+
+              </div>
+
+            ))}
+
+          </div>
+
+        </div>
+
+        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+
+          <h2 className="text-2xl font-bold mb-6">
+            Flujo de Dinero
+          </h2>
+
+          <ResponsiveContainer
+            width="100%"
+            height={300}
+          >
+
+            <LineChart data={chartData}>
+
+              <CartesianGrid strokeDasharray="3 3" />
+
+              <XAxis dataKey="fecha" />
+
+              <YAxis />
+
+              <Tooltip />
+
+              <Line
+                type="monotone"
+                dataKey="ingresos"
+                stroke="#3b82f6"
+                strokeWidth={3}
+              />
+
+              <Line
+                type="monotone"
+                dataKey="salidas"
+                stroke="#ef4444"
+                strokeWidth={3}
+              />
+
+            </LineChart>
+
+          </ResponsiveContainer>
+
+        </div>
+
+      </div>
+
+      <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
 
         <h2 className="text-2xl font-bold mb-6">
-          Clientes con más compras
+          Últimos Movimientos
         </h2>
 
         <div className="space-y-4">
 
-          {entradas.map((entrada) => (
+          {entradas.slice(-5).map((entrada) => (
 
-            <div key={entrada.id}>
+            <div
+              key={entrada.id}
+              className="bg-slate-700 p-4 rounded-xl flex justify-between"
+            >
 
-              <div className="flex justify-between mb-1">
+              <div>
 
-                <span>
+                <p className="font-bold">
                   {entrada.cliente}
-                </span>
+                </p>
 
-                <span>
-                  S/ {entrada.monto}
-                </span>
-
-              </div>
-
-              <div className="w-full bg-slate-700 rounded-full h-4">
-
-                <div
-                  className="bg-blue-500 h-4 rounded-full"
-                  style={{
-                    width: `${Math.min(
-                      entrada.monto / 10,
-                      100
-                    )}%`,
-                  }}
-                ></div>
+                <p className="text-gray-400">
+                  {entrada.producto}
+                </p>
 
               </div>
+
+              <p className="text-green-400 font-bold">
+                + S/ {entrada.monto}
+              </p>
 
             </div>
 

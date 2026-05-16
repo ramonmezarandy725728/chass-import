@@ -1,289 +1,140 @@
 import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 
-import ClientesChart from "../components/charts/ClientesChart";
+export default function Salidas() {
 
-function Salidas() {
-
-  const [producto, setProducto] = useState("");
-  const [proveedor, setProveedor] = useState("");
-  const [cantidad, setCantidad] = useState("");
-  const [monto, setMonto] = useState("");
   const [fecha, setFecha] = useState("");
+  const [descripcion, setDescripcion] =
+    useState("");
 
-  const [modoEdicion, setModoEdicion] = useState(false);
+  const [monto, setMonto] = useState("");
 
-  const [indiceEditar, setIndiceEditar] = useState(null);
+  const [salidas, setSalidas] = useState([]);
 
-  const [registros, setRegistros] = useState(() => {
-
-    const datosGuardados =
-      localStorage.getItem("salidas");
-
-    return datosGuardados
-      ? JSON.parse(datosGuardados)
-      : [];
-  });
-
-  // GUARDAR LOCALSTORAGE
   useEffect(() => {
+    obtenerSalidas();
+  }, []);
 
-    localStorage.setItem(
-      "salidas",
-      JSON.stringify(registros)
-    );
+  const obtenerSalidas = async () => {
 
+    const { data, error } = await supabase
+      .from("salidas")
+      .select("*")
+      .order("created_at", {
+        ascending: false,
+      });
 
-  }, [registros]);
-
-  // LIMPIAR
-  const limpiarFormulario = () => {
-
-    setProducto("");
-    setProveedor("");
-    setCantidad("");
-    setMonto("");
-    setFecha("");
+    if (!error) {
+      setSalidas(data || []);
+    }
   };
 
-  // GUARDAR
-  const guardarSalida = () => {
+  const guardarSalida = async () => {
 
     if (
-      !producto ||
-      !proveedor ||
-      !cantidad ||
-      !monto ||
-      !fecha
+      !fecha ||
+      !descripcion ||
+      !monto
     ) {
-      alert("Complete todos los campos");
+      alert("Completa todos los campos");
       return;
     }
 
-    const nuevaSalida = {
-      producto,
-      proveedor,
-      cantidad,
-      monto,
-      fecha,
-    };
+    const { error } = await supabase
+      .from("salidas")
+      .insert([
+        {
+          fecha,
+          descripcion,
+          monto: Number(monto),
+        },
+      ]);
 
-    if (modoEdicion) {
+    if (!error) {
 
-      const copia = [...registros];
+      obtenerSalidas();
 
-      copia[indiceEditar] = nuevaSalida;
-
-      setRegistros(copia);
-
-      setModoEdicion(false);
-
-      setIndiceEditar(null);
+      setFecha("");
+      setDescripcion("");
+      setMonto("");
 
     } else {
 
-      setRegistros([
-        ...registros,
-        nuevaSalida
-      ]);
+      console.log(error);
+      alert("Error al guardar");
     }
-
-    limpiarFormulario();
-  };
-
-  // ELIMINAR
-  const borrarRegistro = (index) => {
-
-    const nuevos =
-      registros.filter((_, i) => i !== index);
-
-    setRegistros(nuevos);
-  };
-
-  // EDITAR
-  const editarRegistro = (index) => {
-
-    const registro = registros[index];
-
-    setProducto(registro.producto);
-    setProveedor(registro.proveedor);
-    setCantidad(registro.cantidad);
-    setMonto(registro.monto);
-    setFecha(registro.fecha);
-
-    setModoEdicion(true);
-
-    setIndiceEditar(index);
   };
 
   return (
-    <div className="flex-1 p-10 text-white bg-slate-800 min-h-screen">
 
-      {/* TITULO */}
-      <h1 className="text-5xl font-bold mb-10">
-        Registro de Salidas
+    <div className="text-white">
+
+      <h1 className="text-4xl font-bold mb-8">
+        Salidas
       </h1>
 
-      {/* FORMULARIO */}
-      <div className="bg-slate-950 p-8 rounded-3xl mb-10">
+      <div className="bg-slate-800 p-6 rounded-2xl mb-8 grid md:grid-cols-2 gap-4">
 
-        <div className="grid grid-cols-2 gap-6">
+        <input
+          type="date"
+          value={fecha}
+          onChange={(e) =>
+            setFecha(e.target.value)
+          }
+          className="p-3 rounded bg-slate-900"
+        />
 
-          {/* FECHA */}
-          <div>
+        <input
+          type="text"
+          placeholder="Descripción"
+          value={descripcion}
+          onChange={(e) =>
+            setDescripcion(e.target.value)
+          }
+          className="p-3 rounded bg-slate-900"
+        />
 
-            <label className="block mb-2 text-lg">
-              Fecha
-            </label>
-
-            <input
-              type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700"
-            />
-
-          </div>
-
-          {/* PRODUCTO */}
-          <div>
-
-            <label className="block mb-2 text-lg">
-              Tipo de Gasto
-            </label>
-
-            <select
-              value={producto}
-              onChange={(e) => setProducto(e.target.value)}
-              className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700"
-            >
-
-              <option value="">
-                Seleccione gasto
-              </option>
-
-              <option value="Compra iPhone">
-                Compra iPhone
-              </option>
-
-              <option value="Publicidad">
-                Publicidad
-              </option>
-
-              <option value="Transporte">
-                Transporte
-              </option>
-
-              <option value="Servicios">
-                Servicios
-              </option>
-
-              <option value="Productos Externos">
-                Productos Externos
-              </option>
-
-            </select>
-
-          </div>
-
-          {/* PROVEEDOR */}
-          <div>
-
-            <label className="block mb-2 text-lg">
-              Proveedor
-            </label>
-
-            <input
-              type="text"
-              value={proveedor}
-              onChange={(e) => setProveedor(e.target.value)}
-              className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700"
-            />
-
-          </div>
-
-          {/* CANTIDAD */}
-          <div>
-
-            <label className="block mb-2 text-lg">
-              Cantidad
-            </label>
-
-            <input
-              type="number"
-              value={cantidad}
-              onChange={(e) => setCantidad(e.target.value)}
-              className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700"
-            />
-
-          </div>
-
-          {/* MONTO */}
-          <div>
-
-            <label className="block mb-2 text-lg">
-              Monto
-            </label>
-
-            <input
-              type="number"
-              value={monto}
-              onChange={(e) => setMonto(e.target.value)}
-              className="w-full p-4 rounded-xl bg-slate-800 border border-slate-700"
-            />
-
-          </div>
-
-        </div>
-
-        {/* BOTON */}
-        <button
-          onClick={guardarSalida}
-          className="bg-red-600 hover:bg-red-700 px-8 py-4 rounded-xl mt-8 text-lg"
-        >
-
-          {modoEdicion
-            ? "Actualizar Salida"
-            : "Guardar Salida"}
-
-        </button>
+        <input
+          type="number"
+          placeholder="Monto"
+          value={monto}
+          onChange={(e) =>
+            setMonto(e.target.value)
+          }
+          className="p-3 rounded bg-slate-900"
+        />
 
       </div>
 
-      {/* TABLA */}
-      <div className="bg-slate-950 p-6 rounded-3xl">
+      <button
+        onClick={guardarSalida}
+        className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl mb-8"
+      >
+        Guardar Salida
+      </button>
 
-        <h2 className="text-3xl font-bold mb-6">
+      <div className="bg-slate-800 p-6 rounded-2xl overflow-auto">
+
+        <h2 className="text-2xl font-bold mb-6">
           Historial de Salidas
         </h2>
 
-        <table className="w-full">
+        <table className="w-full text-left border-collapse">
 
-          <thead>
+          <thead className="bg-slate-700">
 
-            <tr className="border-b border-slate-700">
+            <tr>
 
-              <th className="p-4 text-left">
+              <th className="p-3">
                 Fecha
               </th>
 
-              <th className="p-4 text-left">
-                Gasto
+              <th className="p-3">
+                Descripción
               </th>
 
-              <th className="p-4 text-left">
-                Proveedor
-              </th>
-
-              <th className="p-4 text-left">
-                Cantidad
-              </th>
-
-              <th className="p-4 text-left">
+              <th className="p-3">
                 Monto
-              </th>
-
-              <th className="p-4 text-left">
-                Acciones
               </th>
 
             </tr>
@@ -292,49 +143,23 @@ function Salidas() {
 
           <tbody>
 
-            {registros.map((registro, index) => (
+            {salidas.map((salida) => (
 
               <tr
-                key={index}
-                className="border-b border-slate-800"
+                key={salida.id}
+                className="border-b border-slate-700 hover:bg-slate-700"
               >
 
-                <td className="p-4">
-                  {registro.fecha}
+                <td className="p-3">
+                  {salida.fecha}
                 </td>
 
-                <td className="p-4">
-                  {registro.producto}
+                <td className="p-3">
+                  {salida.descripcion}
                 </td>
 
-                <td className="p-4">
-                  {registro.proveedor}
-                </td>
-
-                <td className="p-4">
-                  {registro.cantidad}
-                </td>
-
-                <td className="p-4 text-red-400 font-bold">
-                  S/ {registro.monto}
-                </td>
-
-                <td className="p-4 flex gap-2">
-
-                  <button
-                    onClick={() => editarRegistro(index)}
-                    className="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg"
-                  >
-                    Editar
-                  </button>
-
-                  <button
-                    onClick={() => borrarRegistro(index)}
-                    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg"
-                  >
-                    Eliminar
-                  </button>
-
+                <td className="p-3 text-red-400 font-bold">
+                  S/ {salida.monto}
                 </td>
 
               </tr>
@@ -350,5 +175,3 @@ function Salidas() {
     </div>
   );
 }
-
-export default Salidas;
