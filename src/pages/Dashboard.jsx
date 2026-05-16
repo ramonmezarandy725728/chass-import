@@ -1,155 +1,129 @@
-import BarChartBox from "../components/charts/BarChartBox";
-import KpiCard from "../components/KpiCard";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 
-import LineChartBox from "../components/charts/LineChartBox";
+export default function Dashboard() {
 
-function Dashboard({
-  dineroEmpresa,
-  dineroEntrante,
-  dineroSaliente,
-}) {
+  const [entradas, setEntradas] = useState([]);
+  const [salidas, setSalidas] = useState([]);
 
-  const entradas =
-    JSON.parse(localStorage.getItem("entradas")) || [];
+  const saldoInicial = 100;
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const cargarDatos = async () => {
+
+    const { data: entradasData } = await supabase
+      .from("entradas")
+      .select("*");
+
+    const { data: salidasData } = await supabase
+      .from("salidas")
+      .select("*");
+
+    setEntradas(entradasData || []);
+    setSalidas(salidasData || []);
+  };
+
+  const totalEntradas = entradas.reduce(
+    (acc, item) => acc + Number(item.monto),
+    0
+  );
+
+  const totalSalidas = salidas.reduce(
+    (acc, item) => acc + Number(item.monto),
+    0
+  );
+
+  const dineroEmpresa =
+    saldoInicial +
+    totalEntradas -
+    totalSalidas;
 
   return (
-    <div className="flex-1 min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950 p-8 text-white">
 
-      {/* HEADER */}
-      <div className="mb-10">
+    <div>
 
-        <h1 className="text-6xl font-black mb-3">
-          Inicio
-        </h1>
+      <h1 className="text-4xl font-bold mb-8">
+        Inicio
+      </h1>
 
-        <p className="text-slate-400 text-xl">
-          Control financiero de CHASS IMPORT
-        </p>
+      <div className="grid md:grid-cols-3 gap-6 mb-10">
 
-      </div>
+        <div className="bg-slate-800 p-6 rounded-2xl">
 
-      {/* KPIs */}
-      <div className="grid grid-cols-4 gap-6 mb-10">
-
-        <KpiCard
-          titulo="Dinero Empresa"
-          valor={`S/ ${dineroEmpresa}`}
-          color="text-yellow-400"
-        />
-
-        <KpiCard
-          titulo="Entradas"
-          valor={`S/ ${dineroEntrante}`}
-          color="text-green-400"
-        />
-
-        <KpiCard
-          titulo="Salidas"
-          valor={`S/ ${dineroSaliente}`}
-          color="text-red-400"
-        />
-
-        <KpiCard
-          titulo="Ventas"
-          valor={entradas.length}
-          color="text-cyan-400"
-        />
-
-      </div>
-
-      {/* GRAFICOS */}
-      <div className="grid grid-cols-2 gap-6 mb-10">
-
-        <div className="space-y-6">
-
-      <LineChartBox />
-
-      <BarChartBox />
-
-      </div>
-
-        {/* RESUMEN */}
-        <div className="bg-slate-900/70 backdrop-blur-lg p-8 rounded-3xl border border-slate-700">
-
-          <h2 className="text-3xl font-bold mb-6">
-            Resumen Empresarial
+          <h2 className="text-xl mb-2">
+            Dinero Empresa
           </h2>
 
-          <div className="space-y-5">
+          <p className="text-4xl font-bold text-green-400">
+            S/ {dineroEmpresa}
+          </p>
 
-            <div className="bg-slate-800 p-5 rounded-2xl">
+        </div>
 
-              <p className="text-slate-400 mb-2">
-                Estado Financiero
-              </p>
+        <div className="bg-slate-800 p-6 rounded-2xl">
 
-              <h3 className="text-4xl font-black text-green-400">
-                Estable
-              </h3>
+          <h2 className="text-xl mb-2">
+            Entradas
+          </h2>
 
-            </div>
+          <p className="text-4xl font-bold text-blue-400">
+            S/ {totalEntradas}
+          </p>
 
-            <div className="bg-slate-800 p-5 rounded-2xl">
+        </div>
 
-              <p className="text-slate-400 mb-2">
-                Total Movimientos
-              </p>
+        <div className="bg-slate-800 p-6 rounded-2xl">
 
-              <h3 className="text-4xl font-black text-cyan-400">
-                {entradas.length}
-              </h3>
+          <h2 className="text-xl mb-2">
+            Salidas
+          </h2>
 
-            </div>
-
-            <div className="bg-slate-800 p-5 rounded-2xl">
-
-              <p className="text-slate-400 mb-2">
-                Empresa
-              </p>
-
-              <h3 className="text-3xl font-black text-yellow-400">
-                CHASS IMPORT
-              </h3>
-
-            </div>
-
-          </div>
+          <p className="text-4xl font-bold text-red-400">
+            S/ {totalSalidas}
+          </p>
 
         </div>
 
       </div>
 
-      {/* MOVIMIENTOS */}
-      <div className="bg-slate-900/70 backdrop-blur-lg p-8 rounded-3xl border border-slate-700">
+      <div className="bg-slate-800 p-6 rounded-2xl">
 
-        <h2 className="text-3xl font-bold mb-6">
-          Últimos Movimientos
+        <h2 className="text-2xl font-bold mb-6">
+          Clientes con más compras
         </h2>
 
         <div className="space-y-4">
 
-          {entradas.slice(-5).reverse().map((entrada, index) => (
+          {entradas.map((entrada) => (
 
-            <div
-              key={index}
-              className="bg-slate-800 p-5 rounded-2xl flex justify-between items-center"
-            >
+            <div key={entrada.id}>
 
-              <div>
+              <div className="flex justify-between mb-1">
 
-                <h3 className="font-bold text-xl">
+                <span>
                   {entrada.cliente}
-                </h3>
+                </span>
 
-                <p className="text-slate-400">
-                  {entrada.descripcion}
-                </p>
+                <span>
+                  S/ {entrada.monto}
+                </span>
 
               </div>
 
-              <div className="text-3xl font-black text-green-400">
+              <div className="w-full bg-slate-700 rounded-full h-4">
 
-                S/ {entrada.monto}
+                <div
+                  className="bg-blue-500 h-4 rounded-full"
+                  style={{
+                    width: `${Math.min(
+                      entrada.monto / 10,
+                      100
+                    )}%`,
+                  }}
+                ></div>
 
               </div>
 
@@ -164,5 +138,3 @@ function Dashboard({
     </div>
   );
 }
-
-export default Dashboard;
