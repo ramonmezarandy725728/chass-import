@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { supabase } from "../lib/supabase";
 import {
   LineChart,
   Line,
@@ -9,8 +9,6 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-
-import { supabase } from "../lib/supabase";
 
 export default function Dashboard() {
 
@@ -28,78 +26,70 @@ export default function Dashboard() {
     const { data: entradasData } =
       await supabase
         .from("entradas")
-        .select("*")
-        .order("fecha", {
-          ascending: true,
-        });
+        .select("*");
 
     const { data: salidasData } =
       await supabase
         .from("salidas")
-        .select("*")
-        .order("fecha", {
-          ascending: true,
-        });
+        .select("*");
 
     setEntradas(entradasData || []);
     setSalidas(salidasData || []);
   };
 
-  const totalEntradas = entradas.reduce(
-    (acc, item) =>
-      acc + Number(item.monto),
-    0
-  );
+  const totalEntradas =
+    entradas.reduce(
+      (acc, item) =>
+        acc + Number(item.monto),
+      0
+    );
 
-  const totalSalidas = salidas.reduce(
-    (acc, item) =>
-      acc + Number(item.monto),
-    0
-  );
+  const totalSalidas =
+    salidas.reduce(
+      (acc, item) =>
+        acc + Number(item.monto),
+      0
+    );
 
   const dineroEmpresa =
     saldoInicial +
     totalEntradas -
     totalSalidas;
 
-  const productosMap = {};
+  const datosGrafico = {};
 
-  entradas.forEach((entrada) => {
+  entradas.forEach((e) => {
 
-    if (!productosMap[entrada.producto]) {
-      productosMap[entrada.producto] = 0;
+    if (!datosGrafico[e.fecha]) {
+
+      datosGrafico[e.fecha] = {
+        fecha: e.fecha,
+        entradas: 0,
+        salidas: 0,
+      };
     }
 
-    productosMap[entrada.producto] += Number(
-      entrada.cantidad
-    );
+    datosGrafico[e.fecha].entradas +=
+      Number(e.monto);
   });
 
-  const productos = Object.entries(productosMap);
+  salidas.forEach((s) => {
 
-  const chartData = [];
+    if (!datosGrafico[s.fecha]) {
 
-  entradas.forEach((entrada) => {
+      datosGrafico[s.fecha] = {
+        fecha: s.fecha,
+        entradas: 0,
+        salidas: 0,
+      };
+    }
 
-    chartData.push({
-      fecha: entrada.fecha,
-      ingresos: Number(entrada.monto),
-      salidas: 0,
-    });
+    datosGrafico[s.fecha].salidas +=
+      Number(s.monto);
   });
 
-  salidas.forEach((salida) => {
-
-    chartData.push({
-      fecha: salida.fecha,
-      ingresos: 0,
-      salidas: Number(salida.monto),
-    });
-  });
-
-  chartData.sort((a, b) =>
-    new Date(a.fecha) - new Date(b.fecha)
-  );
+  const chartData =
+    Object.values(datosGrafico);
 
   return (
 
@@ -109,11 +99,11 @@ export default function Dashboard() {
         Inicio
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
 
-        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+        <div className="bg-slate-800 p-6 rounded-2xl">
 
-          <h2 className="text-gray-400 mb-2">
+          <h2 className="text-xl text-gray-300 mb-2">
             Dinero Empresa
           </h2>
 
@@ -123,9 +113,9 @@ export default function Dashboard() {
 
         </div>
 
-        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+        <div className="bg-slate-800 p-6 rounded-2xl">
 
-          <h2 className="text-gray-400 mb-2">
+          <h2 className="text-xl text-gray-300 mb-2">
             Entradas
           </h2>
 
@@ -135,9 +125,9 @@ export default function Dashboard() {
 
         </div>
 
-        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+        <div className="bg-slate-800 p-6 rounded-2xl">
 
-          <h2 className="text-gray-400 mb-2">
+          <h2 className="text-xl text-gray-300 mb-2">
             Salidas
           </h2>
 
@@ -147,80 +137,19 @@ export default function Dashboard() {
 
         </div>
 
-        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
-
-          <h2 className="text-gray-400 mb-2">
-            Balance
-          </h2>
-
-          <p className="text-4xl font-bold text-yellow-400">
-            {totalEntradas - totalSalidas >= 0
-              ? "POSITIVO"
-              : "NEGATIVO"}
-          </p>
-
-        </div>
-
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <div className="bg-slate-800 p-6 rounded-2xl mb-10">
 
-        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+        <h2 className="text-2xl font-bold mb-6">
 
-          <h2 className="text-2xl font-bold mb-6">
-            Productos Más Vendidos
-          </h2>
+          Estadísticas por Fecha
 
-          <div className="space-y-5">
+        </h2>
 
-            {productos.map(([producto, cantidad]) => (
+        <div style={{ width: "100%", height: 350 }}>
 
-              <div key={producto}>
-
-                <div className="flex justify-between mb-2">
-
-                  <span>
-                    {producto}
-                  </span>
-
-                  <span>
-                    {cantidad}
-                  </span>
-
-                </div>
-
-                <div className="w-full bg-slate-700 rounded-full h-6">
-
-                  <div
-                    className="bg-cyan-500 h-6 rounded-full"
-                    style={{
-                      width: `${Math.min(
-                        cantidad * 10,
-                        100
-                      )}%`,
-                    }}
-                  ></div>
-
-                </div>
-
-              </div>
-
-            ))}
-
-          </div>
-
-        </div>
-
-        <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
-
-          <h2 className="text-2xl font-bold mb-6">
-            Flujo de Dinero
-          </h2>
-
-          <ResponsiveContainer
-            width="100%"
-            height={300}
-          >
+          <ResponsiveContainer>
 
             <LineChart data={chartData}>
 
@@ -234,16 +163,16 @@ export default function Dashboard() {
 
               <Line
                 type="monotone"
-                dataKey="ingresos"
-                stroke="#3b82f6"
-                strokeWidth={3}
+                dataKey="entradas"
+                stroke="#22c55e"
+                strokeWidth={4}
               />
 
               <Line
                 type="monotone"
                 dataKey="salidas"
                 stroke="#ef4444"
-                strokeWidth={3}
+                strokeWidth={4}
               />
 
             </LineChart>
@@ -254,213 +183,103 @@ export default function Dashboard() {
 
       </div>
 
-     <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+      <div className="bg-slate-800 p-6 rounded-2xl">
 
-  <h2 className="text-2xl font-bold mb-6">
-    Últimos Movimientos
-  </h2>
+        <h2 className="text-2xl font-bold mb-6">
 
-  <div className="space-y-4">
+          Últimos Movimientos
 
-    {[
-      ...entradas.map((e) => ({
-        tipo: "entrada",
-        fecha: e.fecha,
-        nombre: e.cliente,
-        detalle: e.producto,
-        monto: e.monto,
-        id: e.id,
-      })),
-
-      ...salidas.map((s) => ({
-        tipo: "salida",
-        fecha: s.fecha,
-        nombre: s.descripcion,
-        detalle: "Gasto registrado",
-        monto: s.monto,
-        id: s.id,
-      })),
-    ]
-
-      .sort(
-        (a, b) =>
-          new Date(b.fecha) -
-          new Date(a.fecha)
-      )
-
-      .slice(0, 8)
-
-      .map((movimiento) => (
-
-        <div
-          key={`${movimiento.tipo}-${movimiento.id}`}
-          className="bg-slate-700 p-4 rounded-xl flex justify-between items-center"
-        >
-
-          <div>
-
-            <p
-              className={`font-bold text-lg ${
-                movimiento.tipo ===
-                "entrada"
-                  ? "text-green-400"
-                  : "text-red-400"
-              }`}
-            >
-
-              {movimiento.tipo ===
-              "entrada"
-                ? "Entrada"
-                : "Salida"}
-
-            </p>
-
-            <p className="text-white text-lg">
-
-              {movimiento.nombre}
-
-            </p>
-
-            <p className="text-gray-400">
-
-              {movimiento.detalle}
-
-            </p>
-
-            <p className="text-sm text-gray-500 mt-1">
-
-              {movimiento.fecha}
-
-            </p>
-
-          </div>
-
-          <p
-            className={`font-bold text-2xl ${
-              movimiento.tipo ===
-              "entrada"
-                ? "text-green-400"
-                : "text-red-400"
-            }`}
-          >
-
-            {movimiento.tipo ===
-            "entrada"
-              ? "+"
-              : "-"}
-
-            {" "}S/ {movimiento.monto}
-
-          </p>
-
-        </div>
-
-      ))}
-
-  </div>
-
-</div>
-
-  <h2 className="text-2xl font-bold mb-6">
-    Últimos Movimientos
-  </h2>
-
-  <div className="space-y-4">
-
-    {entradas.slice(-5).map((entrada) => (
-
-      <div
-        key={entrada.id}
-        className="bg-slate-700 p-4 rounded-xl flex justify-between"
-      >
-
-        <div>
-
-          <p className="font-bold text-green-400">
-            Entrada
-          </p>
-
-          <p>
-            {entrada.cliente}
-          </p>
-
-          <p className="text-gray-400">
-            {entrada.producto}
-          </p>
-
-        </div>
-
-        <p className="text-green-400 font-bold">
-          + S/ {entrada.monto}
-        </p>
-
-      </div>
-
-    ))}
-
-    {salidas.slice(-5).map((salida) => (
-
-      <div
-        key={salida.id}
-        className="bg-slate-700 p-4 rounded-xl flex justify-between"
-      >
-
-        <div>
-
-          <p className="font-bold text-red-400">
-            Salida
-          </p>
-
-          <p>
-            {salida.descripcion}
-          </p>
-
-          <p className="text-gray-400">
-            {salida.fecha}
-          </p>
-
-        </div>
-
-        <p className="text-red-400 font-bold">
-          - S/ {salida.monto}
-        </p>
-
-      </div>
-
-    ))}
-
-  </div>
-
-</div>
+        </h2>
 
         <div className="space-y-4">
 
-          {entradas.slice(-5).map((entrada) => (
+          {[
+            ...entradas.map((e) => ({
+              tipo: "entrada",
+              fecha: e.fecha,
+              nombre: e.cliente,
+              detalle: e.producto,
+              monto: e.monto,
+              id: e.id,
+            })),
 
-            <div
-              key={entrada.id}
-              className="bg-slate-700 p-4 rounded-xl flex justify-between"
-            >
+            ...salidas.map((s) => ({
+              tipo: "salida",
+              fecha: s.fecha,
+              nombre: s.descripcion,
+              detalle: "Gasto registrado",
+              monto: s.monto,
+              id: s.id,
+            })),
+          ]
 
-              <div>
+            .sort(
+              (a, b) =>
+                new Date(b.fecha) -
+                new Date(a.fecha)
+            )
 
-                <p className="font-bold">
-                  {entrada.cliente}
-                </p>
+            .slice(0, 8)
 
-                <p className="text-gray-400">
-                  {entrada.producto}
+            .map((movimiento) => (
+
+              <div
+                key={
+                  movimiento.tipo +
+                  movimiento.id
+                }
+                className="bg-slate-700 p-4 rounded-xl flex justify-between"
+              >
+
+                <div>
+
+                  <p
+                    className={`font-bold ${
+                      movimiento.tipo ===
+                      "entrada"
+                        ? "text-green-400"
+                        : "text-red-400"
+                    }`}
+                  >
+
+                    {movimiento.tipo ===
+                    "entrada"
+                      ? "Entrada"
+                      : "Salida"}
+
+                  </p>
+
+                  <p>
+                    {movimiento.nombre}
+                  </p>
+
+                  <p className="text-gray-400">
+                    {movimiento.detalle}
+                  </p>
+
+                </div>
+
+                <p
+                  className={`font-bold text-2xl ${
+                    movimiento.tipo ===
+                    "entrada"
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }`}
+                >
+
+                  {movimiento.tipo ===
+                  "entrada"
+                    ? "+"
+                    : "-"}
+
+                  {" "}S/ {movimiento.monto}
+
                 </p>
 
               </div>
 
-              <p className="text-green-400 font-bold">
-                + S/ {entrada.monto}
-              </p>
-
-            </div>
-
-          ))}
+            ))}
 
         </div>
 
