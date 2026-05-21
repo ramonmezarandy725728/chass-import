@@ -7,6 +7,8 @@ export default function Entradas() {
   const [producto, setProducto] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [monto, setMonto] = useState("");
+  const [fecha, setFecha] = useState("");
+
   const [entradas, setEntradas] = useState([]);
 
   useEffect(() => {
@@ -18,10 +20,12 @@ export default function Entradas() {
     const { data, error } = await supabase
       .from("entradas")
       .select("*")
-      .order("id", { ascending: false });
+      .order("id", {
+        ascending: false,
+      });
 
     if (!error) {
-      setEntradas(data);
+      setEntradas(data || []);
     }
   }
 
@@ -35,20 +39,27 @@ export default function Entradas() {
         {
           cliente,
           producto,
-          cantidad,
-          monto,
+          cantidad: Number(cantidad),
+          monto: Number(monto),
+          fecha,
         },
       ]);
 
-    if (!error) {
+    if (error) {
 
-      setCliente("");
-      setProducto("");
-      setCantidad("");
-      setMonto("");
+      console.log(error);
+      alert("Error al guardar");
 
-      cargarEntradas();
+      return;
     }
+
+    setCliente("");
+    setProducto("");
+    setCantidad("");
+    setMonto("");
+    setFecha("");
+
+    cargarEntradas();
   }
 
   async function eliminarEntrada(id) {
@@ -64,13 +75,9 @@ export default function Entradas() {
       .delete()
       .eq("id", id);
 
-    if (error) {
-      alert("Error al eliminar");
-      console.log(error);
-      return;
+    if (!error) {
+      cargarEntradas();
     }
-
-    cargarEntradas();
   }
 
   return (
@@ -78,7 +85,7 @@ export default function Entradas() {
     <div className="text-white">
 
       <h1 className="text-4xl font-bold mb-8">
-        Entradas
+        Ventas
       </h1>
 
       <form
@@ -132,13 +139,25 @@ export default function Entradas() {
             required
           />
 
+          <input
+            type="date"
+            value={fecha}
+            onChange={(e) =>
+              setFecha(e.target.value)
+            }
+            className="bg-slate-900 p-4 rounded-xl"
+            required
+          />
+
         </div>
 
         <button
           type="submit"
           className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-xl mt-6"
         >
-          Guardar Entrada
+
+          Guardar Venta
+
         </button>
 
       </form>
@@ -146,7 +165,7 @@ export default function Entradas() {
       <div className="bg-slate-800 p-6 rounded-2xl">
 
         <h2 className="text-3xl font-bold mb-6">
-          Historial de Entradas
+          Historial de Ventas
         </h2>
 
         <div className="overflow-auto">
@@ -157,11 +176,29 @@ export default function Entradas() {
 
               <tr className="text-left border-b border-slate-600">
 
-                <th className="p-4">Cliente</th>
-                <th className="p-4">Producto</th>
-                <th className="p-4">Cantidad</th>
-                <th className="p-4">Monto</th>
-                <th className="p-4">Acciones</th>
+                <th className="p-4">
+                  Fecha
+                </th>
+
+                <th className="p-4">
+                  Cliente
+                </th>
+
+                <th className="p-4">
+                  Producto
+                </th>
+
+                <th className="p-4">
+                  Cantidad
+                </th>
+
+                <th className="p-4">
+                  Monto
+                </th>
+
+                <th className="p-4">
+                  Acción
+                </th>
 
               </tr>
 
@@ -175,6 +212,10 @@ export default function Entradas() {
                   key={item.id}
                   className="border-b border-slate-700"
                 >
+
+                  <td className="p-4">
+                    {item.fecha}
+                  </td>
 
                   <td className="p-4">
                     {item.cliente}
@@ -200,7 +241,9 @@ export default function Entradas() {
                       }
                       className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg"
                     >
+
                       Eliminar
+
                     </button>
 
                   </td>
