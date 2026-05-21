@@ -204,7 +204,6 @@ export default function Entradas() {
 
               <th className="p-3">
                 Monto
-                <td className="p-3 text-green-400 font-bold"></td>
               </th>
               <th className="p-3">
                  Acciones
@@ -241,6 +240,18 @@ export default function Entradas() {
 
                 <td className="p-3 text-green-400 font-bold">
                   S/ {entrada.monto}
+                  <td className="p-3">
+
+  <button
+    onClick={() =>
+      eliminarEntrada(entrada.id)
+    }
+    className="bg-red-600 px-4 py-2 rounded-lg"
+  >
+    Eliminar
+  </button>
+
+</td>
                 </td>
 
               </tr>
