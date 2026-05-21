@@ -22,14 +22,15 @@ function App() {
   }
 
   return (
-    <div className="flex bg-slate-900 min-h-screen text-white">
+
+    <div className="bg-slate-900 min-h-screen text-white">
 
       <Sidebar
         setPagina={setPagina}
         setLogeado={setLogeado}
       />
 
-      <div className="flex-1 md:ml-72 p-4">
+      <div className="p-4 md:ml-72">
 
         {pagina === "inicio" && <Dashboard />}
 
