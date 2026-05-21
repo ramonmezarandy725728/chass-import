@@ -1,301 +1,299 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  Legend,
+} from "recharts";
+
 export default function Ventas() {
 
-  const [ventas, setVentas] = useState([]);
-
-  const [cliente, setCliente] = useState("");
-  const [producto, setProducto] = useState("");
-  const [cantidad, setCantidad] = useState("");
-  const [monto, setMonto] = useState("");
-  const [fecha, setFecha] = useState("");
+  const [entradas, setEntradas] = useState([]);
+  const [salidas, setSalidas] = useState([]);
 
   useEffect(() => {
-    cargarVentas();
+    cargarDatos();
   }, []);
 
-  async function cargarVentas() {
+  async function cargarDatos() {
 
-    const { data, error } = await supabase
-      .from("ventas")
-      .select("*")
-      .order("id", { ascending: false });
+    const { data: entradasData } =
+      await supabase
+        .from("entradas")
+        .select("*");
 
-    if (!error) {
-      setVentas(data);
-    }
+    const { data: salidasData } =
+      await supabase
+        .from("salidas")
+        .select("*");
+
+    setEntradas(entradasData || []);
+    setSalidas(salidasData || []);
   }
 
-  async function guardarVenta(e) {
+  const totalEntradas = entradas.reduce(
+    (acc, item) =>
+      acc + Number(item.monto || 0),
+    0
+  );
 
-    e.preventDefault();
+  const totalSalidas = salidas.reduce(
+    (acc, item) =>
+      acc + Number(item.monto || 0),
+    0
+  );
 
-    const { error } = await supabase
-      .from("ventas")
-      .insert([
-        {
-          cliente,
-          producto,
-          cantidad,
-          monto,
-          fecha,
-        },
-      ]);
+  const productosMap = {};
 
-    if (!error) {
+  entradas.forEach((item) => {
 
-      setCliente("");
-      setProducto("");
-      setCantidad("");
-      setMonto("");
-      setFecha("");
-
-      cargarVentas();
+    if (!productosMap[item.producto]) {
+      productosMap[item.producto] = 0;
     }
-  }
 
-  async function eliminarVenta(id) {
-
-    const confirmar = window.confirm(
-      "¿Deseas eliminar esta venta?"
+    productosMap[item.producto] += Number(
+      item.cantidad || 0
     );
+  });
 
-    if (!confirmar) return;
+  const productosData = Object.keys(
+    productosMap
+  ).map((producto) => ({
+    producto,
+    cantidad: productosMap[producto],
+  }));
 
-    const { error } = await supabase
-      .from("ventas")
-      .delete()
-      .eq("id", id);
+  const fechaMap = {};
 
-    if (!error) {
-      cargarVentas();
+  entradas.forEach((item) => {
+
+    if (!fechaMap[item.fecha]) {
+
+      fechaMap[item.fecha] = {
+        fecha: item.fecha,
+        ingresos: 0,
+        salidas: 0,
+      };
     }
-  }
+
+    fechaMap[item.fecha].ingresos +=
+      Number(item.monto || 0);
+  });
+
+  salidas.forEach((item) => {
+
+    if (!fechaMap[item.fecha]) {
+
+      fechaMap[item.fecha] = {
+        fecha: item.fecha,
+        ingresos: 0,
+        salidas: 0,
+      };
+    }
+
+    fechaMap[item.fecha].salidas +=
+      Number(item.monto || 0);
+  });
+
+  const fechaData =
+    Object.values(fechaMap);
+
+  const pieData = [
+    {
+      name: "Ingresos",
+      value: totalEntradas,
+    },
+    {
+      name: "Salidas",
+      value: totalSalidas,
+    },
+  ];
+
+  const COLORS = [
+    "#00ff99",
+    "#ff4d4f",
+  ];
 
   return (
 
     <div className="text-white">
 
       <h1 className="text-5xl font-bold mb-10">
-        Ventas
+        Ventas y Estadísticas
       </h1>
 
-      <form
-        onSubmit={guardarVenta}
-        className="bg-slate-800 p-8 rounded-3xl mb-10"
-      >
+      <div className="grid md:grid-cols-3 gap-6 mb-10">
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-slate-800 p-8 rounded-3xl">
 
-          <input
-            type="text"
-            placeholder="Cliente"
-            value={cliente}
-            onChange={(e) =>
-              setCliente(e.target.value)
-            }
-            className="bg-slate-900 p-4 rounded-xl"
-            required
-          />
+          <h2 className="text-gray-400 text-xl mb-3">
+            Total Ingresos
+          </h2>
 
-          <select
-            value={producto}
-            onChange={(e) =>
-              setProducto(e.target.value)
-            }
-            className="bg-slate-900 p-4 rounded-xl"
-            required
-          >
-
-            <option value="">
-              Seleccionar Marca / Modelo
-            </option>
-
-            <option>iPhone 7</option>
-            <option>iPhone 7 Plus</option>
-
-            <option>iPhone 8</option>
-            <option>iPhone 8 Plus</option>
-
-            <option>iPhone X</option>
-            <option>iPhone XR</option>
-            <option>iPhone XS</option>
-            <option>iPhone XS Max</option>
-
-            <option>iPhone 11</option>
-            <option>iPhone 11 Pro</option>
-            <option>iPhone 11 Pro Max</option>
-
-            <option>iPhone 12 Mini</option>
-            <option>iPhone 12</option>
-            <option>iPhone 12 Pro</option>
-            <option>iPhone 12 Pro Max</option>
-
-            <option>iPhone 13 Mini</option>
-            <option>iPhone 13</option>
-            <option>iPhone 13 Pro</option>
-            <option>iPhone 13 Pro Max</option>
-
-            <option>iPhone 14</option>
-            <option>iPhone 14 Plus</option>
-            <option>iPhone 14 Pro</option>
-            <option>iPhone 14 Pro Max</option>
-
-            <option>iPhone 15</option>
-            <option>iPhone 15 Plus</option>
-            <option>iPhone 15 Pro</option>
-            <option>iPhone 15 Pro Max</option>
-
-            <option>iPhone 16</option>
-            <option>iPhone 16 Plus</option>
-            <option>iPhone 16 Pro</option>
-            <option>iPhone 16 Pro Max</option>
-
-            <option>iPhone 17</option>
-            <option>iPhone 17 Plus</option>
-            <option>iPhone 17 Pro</option>
-            <option>iPhone 17 Pro Max</option>
-            <option>iPhone 17 Air</option>
-
-          </select>
-
-          <input
-            type="number"
-            placeholder="Cantidad"
-            value={cantidad}
-            onChange={(e) =>
-              setCantidad(e.target.value)
-            }
-            className="bg-slate-900 p-4 rounded-xl"
-            required
-          />
-
-          <input
-            type="date"
-            value={fecha}
-            onChange={(e) =>
-              setFecha(e.target.value)
-            }
-            className="bg-slate-900 p-4 rounded-xl"
-            required
-          />
-
-          <input
-            type="number"
-            placeholder="Monto"
-            value={monto}
-            onChange={(e) =>
-              setMonto(e.target.value)
-            }
-            className="bg-slate-900 p-4 rounded-xl"
-            required
-          />
+          <p className="text-5xl font-bold text-green-400">
+            S/ {totalEntradas}
+          </p>
 
         </div>
 
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 px-10 py-4 rounded-2xl mt-8 text-xl font-bold"
-        >
-          Guardar Venta
-        </button>
+        <div className="bg-slate-800 p-8 rounded-3xl">
 
-      </form>
+          <h2 className="text-gray-400 text-xl mb-3">
+            Total Salidas
+          </h2>
+
+          <p className="text-5xl font-bold text-red-400">
+            S/ {totalSalidas}
+          </p>
+
+        </div>
+
+        <div className="bg-slate-800 p-8 rounded-3xl">
+
+          <h2 className="text-gray-400 text-xl mb-3">
+            Ganancia
+          </h2>
+
+          <p className="text-5xl font-bold text-cyan-400">
+            S/ {totalEntradas - totalSalidas}
+          </p>
+
+        </div>
+
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-8 mb-10">
+
+        <div className="bg-slate-800 p-8 rounded-3xl">
+
+          <h2 className="text-3xl font-bold mb-8">
+            Productos Más Vendidos
+          </h2>
+
+          <ResponsiveContainer
+            width="100%"
+            height={350}
+          >
+
+            <BarChart data={productosData}>
+
+              <CartesianGrid strokeDasharray="3 3" />
+
+              <XAxis dataKey="producto" />
+
+              <YAxis />
+
+              <Tooltip />
+
+              <Bar
+                dataKey="cantidad"
+                fill="#3b82f6"
+              />
+
+            </BarChart>
+
+          </ResponsiveContainer>
+
+        </div>
+
+        <div className="bg-slate-800 p-8 rounded-3xl">
+
+          <h2 className="text-3xl font-bold mb-8">
+            Ingresos vs Salidas
+          </h2>
+
+          <ResponsiveContainer
+            width="100%"
+            height={350}
+          >
+
+            <PieChart>
+
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                outerRadius={120}
+                dataKey="value"
+                label
+              >
+
+                {pieData.map(
+                  (entry, index) => (
+
+                    <Cell
+                      key={index}
+                      fill={COLORS[index]}
+                    />
+
+                  )
+                )}
+
+              </Pie>
+
+              <Tooltip />
+
+              <Legend />
+
+            </PieChart>
+
+          </ResponsiveContainer>
+
+        </div>
+
+      </div>
 
       <div className="bg-slate-800 p-8 rounded-3xl">
 
-        <h2 className="text-4xl font-bold mb-8">
-          Historial de Ventas
+        <h2 className="text-3xl font-bold mb-8">
+          Estadísticas por Fecha
         </h2>
 
-        <div className="overflow-auto">
+        <ResponsiveContainer
+          width="100%"
+          height={400}
+        >
 
-          <table className="w-full">
+          <LineChart data={fechaData}>
 
-            <thead>
+            <CartesianGrid strokeDasharray="3 3" />
 
-              <tr className="text-left border-b border-slate-600">
+            <XAxis dataKey="fecha" />
 
-                <th className="p-4">
-                  Fecha
-                </th>
+            <YAxis />
 
-                <th className="p-4">
-                  Cliente
-                </th>
+            <Tooltip />
 
-                <th className="p-4">
-                  Producto
-                </th>
+            <Legend />
 
-                <th className="p-4">
-                  Cantidad
-                </th>
+            <Line
+              type="monotone"
+              dataKey="ingresos"
+              stroke="#00ff99"
+              strokeWidth={4}
+            />
 
-                <th className="p-4">
-                  Monto
-                </th>
+            <Line
+              type="monotone"
+              dataKey="salidas"
+              stroke="#ff4d4f"
+              strokeWidth={4}
+            />
 
-                <th className="p-4">
-                  Acción
-                </th>
+          </LineChart>
 
-              </tr>
-
-            </thead>
-
-            <tbody>
-
-              {ventas.map((venta) => (
-
-                <tr
-                  key={venta.id}
-                  className="border-b border-slate-700"
-                >
-
-                  <td className="p-4">
-                    {venta.fecha}
-                  </td>
-
-                  <td className="p-4">
-                    {venta.cliente}
-                  </td>
-
-                  <td className="p-4">
-                    {venta.producto}
-                  </td>
-
-                  <td className="p-4">
-                    {venta.cantidad}
-                  </td>
-
-                  <td className="p-4 text-green-400 font-bold">
-                    S/ {venta.monto}
-                  </td>
-
-                  <td className="p-4">
-
-                    <button
-                      onClick={() =>
-                        eliminarVenta(venta.id)
-                      }
-                      className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-xl font-bold"
-                    >
-                      Eliminar
-                    </button>
-
-                  </td>
-
-                </tr>
-
-              ))}
-
-            </tbody>
-
-          </table>
-
-        </div>
+        </ResponsiveContainer>
 
       </div>
 
