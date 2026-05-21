@@ -1,3 +1,14 @@
+const eliminarEntrada = async (id) => {
+
+  const { error } = await supabase
+    .from("entradas")
+    .delete()
+    .eq("id", id);
+
+  if (!error) {
+    obtenerEntradas();
+  }
+};
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
@@ -193,6 +204,10 @@ export default function Entradas() {
 
               <th className="p-3">
                 Monto
+                <td className="p-3 text-green-400 font-bold"></td>
+              </th>
+              <th className="p-3">
+                 Acciones
               </th>
 
             </tr>

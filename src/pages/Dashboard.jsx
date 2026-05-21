@@ -256,9 +256,79 @@ export default function Dashboard() {
 
       <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
 
-        <h2 className="text-2xl font-bold mb-6">
-          Últimos Movimientos
-        </h2>
+       <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+
+  <h2 className="text-2xl font-bold mb-6">
+    Últimos Movimientos
+  </h2>
+
+  <div className="space-y-4">
+
+    {entradas.slice(-5).map((entrada) => (
+
+      <div
+        key={entrada.id}
+        className="bg-slate-700 p-4 rounded-xl flex justify-between"
+      >
+
+        <div>
+
+          <p className="font-bold text-green-400">
+            Entrada
+          </p>
+
+          <p>
+            {entrada.cliente}
+          </p>
+
+          <p className="text-gray-400">
+            {entrada.producto}
+          </p>
+
+        </div>
+
+        <p className="text-green-400 font-bold">
+          + S/ {entrada.monto}
+        </p>
+
+      </div>
+
+    ))}
+
+    {salidas.slice(-5).map((salida) => (
+
+      <div
+        key={salida.id}
+        className="bg-slate-700 p-4 rounded-xl flex justify-between"
+      >
+
+        <div>
+
+          <p className="font-bold text-red-400">
+            Salida
+          </p>
+
+          <p>
+            {salida.descripcion}
+          </p>
+
+          <p className="text-gray-400">
+            {salida.fecha}
+          </p>
+
+        </div>
+
+        <p className="text-red-400 font-bold">
+          - S/ {salida.monto}
+        </p>
+
+      </div>
+
+    ))}
+
+  </div>
+
+</div>
 
         <div className="space-y-4">
 

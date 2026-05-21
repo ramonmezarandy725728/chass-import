@@ -1,3 +1,14 @@
+const eliminarSalida = async (id) => {
+
+  const { error } = await supabase
+    .from("salidas")
+    .delete()
+    .eq("id", id);
+
+  if (!error) {
+    obtenerSalidas();
+  }
+};
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
@@ -136,6 +147,9 @@ export default function Salidas() {
               <th className="p-3">
                 Monto
               </th>
+              <th className="p-3">
+  Acciones
+</th>
 
             </tr>
 
@@ -160,6 +174,18 @@ export default function Salidas() {
 
                 <td className="p-3 text-red-400 font-bold">
                   S/ {salida.monto}
+                  <td className="p-3">
+
+  <button
+    onClick={() =>
+      eliminarSalida(salida.id)
+    }
+    className="bg-red-600 px-4 py-2 rounded-lg"
+  >
+    Eliminar
+  </button>
+
+</td>
                 </td>
 
               </tr>
