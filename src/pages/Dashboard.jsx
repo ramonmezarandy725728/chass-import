@@ -108,7 +108,7 @@ export default function Dashboard() {
           </h2>
 
           <p className="text-4xl font-bold text-green-400">
-            S/ {dineroEmpresa}
+            S/ {dineroEmpresa.toFixed(2)}
           </p>
 
         </div>
@@ -120,7 +120,7 @@ export default function Dashboard() {
           </h2>
 
           <p className="text-4xl font-bold text-blue-400">
-            S/ {totalEntradas}
+            S/ {totalEntradas.toFixed(2)}
           </p>
 
         </div>
@@ -132,7 +132,7 @@ export default function Dashboard() {
           </h2>
 
           <p className="text-4xl font-bold text-red-400">
-            S/ {totalSalidas}
+            S/ {totalSalidas.toFixed(2)}
           </p>
 
         </div>
