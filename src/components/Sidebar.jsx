@@ -1,80 +1,162 @@
-function Sidebar({ setPagina, setLogeado }) {
+import { useState } from "react";
 
-  const cerrarSesion = () => {
+import {
+  Menu,
+  X,
+  Home,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Package,
+  BarChart3,
+  LogOut,
+} from "lucide-react";
 
-    sessionStorage.removeItem("logeado");
+export default function Sidebar({
+  setPagina,
+  setLogeado,
+}) {
+
+  const [menuOpen, setMenuOpen] =
+    useState(false);
+
+  function cambiarPagina(pagina) {
+
+    setPagina(pagina);
+
+    setMenuOpen(false);
+  }
+
+  function cerrarSesion() {
+
+    sessionStorage.removeItem(
+      "logeado"
+    );
 
     setLogeado(false);
-  };
+  }
 
   return (
-    <div className="w-72 flex h-screen bg-slate-950 text-white p-6 flex-col justify-between fixed left-0 top-0">
 
-      {/* PARTE SUPERIOR */}
-      <div>
+    <>
 
-        {/* LOGO */}
-        <h1 className="text-4xl font-black mb-12 text-blue-400">
+      {/* BOTON MENU CELULAR */}
+
+      <button
+        onClick={() =>
+          setMenuOpen(!menuOpen)
+        }
+        className="fixed top-4 left-4 z-50 bg-slate-900 p-3 rounded-xl text-white md:hidden"
+      >
+
+        {menuOpen ? <X /> : <Menu />}
+
+      </button>
+
+      {/* SIDEBAR */}
+
+      <div
+        className={`
+          fixed top-0 left-0 h-full
+          bg-slate-950 text-white
+          w-72 p-6 z-40
+          transform transition-transform duration-300
+
+          ${
+            menuOpen
+              ? "translate-x-0"
+              : "-translate-x-full"
+          }
+
+          md:translate-x-0
+        `}
+      >
+
+        <h1 className="text-3xl font-bold mb-10 mt-14 md:mt-0">
           CHASS IMPORT
         </h1>
 
-        {/* MENU */}
         <div className="flex flex-col gap-4">
 
-          {/* INICIO */}
           <button
-            onClick={() => setPagina("inicio")}
-            className="bg-slate-800 hover:bg-blue-600 transition-all p-4 rounded-2xl text-left"
+            onClick={() =>
+              cambiarPagina("inicio")
+            }
+            className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl text-left"
           >
+
+            <Home />
+
             Inicio
+
           </button>
 
-          {/* ENTRADAS */}
           <button
-            onClick={() => setPagina("entradas")}
-            className="bg-slate-800 hover:bg-green-600 transition-all p-4 rounded-2xl text-left"
+            onClick={() =>
+              cambiarPagina("entradas")
+            }
+            className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl text-left"
           >
+
+            <ArrowDownCircle />
+
             Entradas
+
           </button>
 
-          {/* SALIDAS */}
           <button
-            onClick={() => setPagina("salidas")}
-            className="bg-slate-800 hover:bg-red-600 transition-all p-4 rounded-2xl text-left"
+            onClick={() =>
+              cambiarPagina("salidas")
+            }
+            className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl text-left"
           >
+
+            <ArrowUpCircle />
+
             Salidas
+
           </button>
 
-          {/* VENTAS */}
           <button
-            onClick={() => setPagina("ventas")}
-            className="bg-slate-800 hover:bg-purple-600 transition-all p-4 rounded-2xl text-left"
+            onClick={() =>
+              cambiarPagina("productos")
+            }
+            className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl text-left"
           >
-            Ventas
-          </button>
 
-          {/* PRODUCTOS */}
-          <button
-            onClick={() => setPagina("productos")}
-            className="bg-slate-800 hover:bg-cyan-600 transition-all p-4 rounded-2xl text-left"
-          >
+            <Package />
+
             Productos
+
+          </button>
+
+          <button
+            onClick={() =>
+              cambiarPagina("ventas")
+            }
+            className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl text-left"
+          >
+
+            <BarChart3 />
+
+            Ventas
+
+          </button>
+
+          <button
+            onClick={cerrarSesion}
+            className="flex items-center gap-3 bg-red-700 hover:bg-red-600 p-4 rounded-2xl mt-8 text-left"
+          >
+
+            <LogOut />
+
+            Cerrar Sesión
+
           </button>
 
         </div>
 
       </div>
 
-      {/* BOTON ABAJO */}
-      <button
-        onClick={cerrarSesion}
-        className="bg-red-600 hover:bg-red-700 transition-all p-4 rounded-2xl text-left"
-      >
-        Cerrar Sesión
-      </button>
-
-    </div>
+    </>
   );
 }
-
-export default Sidebar;
