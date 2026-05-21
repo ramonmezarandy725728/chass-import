@@ -23,14 +23,19 @@ function App() {
 
   return (
 
-    <div className="bg-slate-900 min-h-screen text-white">
+    <div className="
+      bg-slate-900
+      min-h-screen
+      text-white
+      p-4
+    ">
 
       <Sidebar
         setPagina={setPagina}
         setLogeado={setLogeado}
       />
 
-      <div className="p-4 md:ml-72">
+      <div className="pt-20">
 
         {pagina === "inicio" && <Dashboard />}
 

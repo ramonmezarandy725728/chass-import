@@ -1,29 +1,18 @@
 import { useState } from "react";
 
-import {
-  Menu,
-  X,
-  Home,
-  ArrowDownCircle,
-  ArrowUpCircle,
-  Package,
-  BarChart3,
-  LogOut,
-} from "lucide-react";
-
 export default function Sidebar({
   setPagina,
   setLogeado,
 }) {
 
-  const [menuOpen, setMenuOpen] =
+  const [abierto, setAbierto] =
     useState(false);
 
   function cambiarPagina(pagina) {
 
     setPagina(pagina);
 
-    setMenuOpen(false);
+    setAbierto(false);
   }
 
   function cerrarSesion() {
@@ -39,186 +28,127 @@ export default function Sidebar({
 
     <>
 
-      {/* BOTON MENU CELULAR */}
+      {/* BOTON 3 LINEAS */}
 
       <button
         onClick={() =>
-          setMenuOpen(!menuOpen)
+          setAbierto(!abierto)
         }
         className="
-          fixed top-4 left-4 z-50
-          bg-slate-900
-          p-3 rounded-xl
+          fixed top-4 left-4
+          z-50
+          bg-slate-800
           text-white
-          md:hidden
+          px-4 py-2
+          rounded-xl
         "
       >
 
-        {menuOpen ? <X /> : <Menu />}
+        ☰
 
       </button>
 
-      {/* FONDO OSCURO */}
+      {/* MENU */}
 
-      {menuOpen && (
+      {abierto && (
 
         <div
           className="
-            fixed inset-0
-            bg-black/50
-            z-30
-            md:hidden
+            fixed top-0 left-0
+            w-64 h-full
+            bg-slate-950
+            p-6
+            z-40
           "
-          onClick={() =>
-            setMenuOpen(false)
-          }
-        ></div>
+        >
 
-      )}
+          <h1 className="
+            text-3xl font-bold
+            mt-14 mb-10
+          ">
+            CHASS IMPORT
+          </h1>
 
-      {/* SIDEBAR */}
+          <div className="
+            flex flex-col gap-4
+          ">
 
-      <div
-        className={`
-          fixed top-0 left-0
-          h-full
-          w-72
-          bg-slate-950
-          p-6
-          z-40
-          transition-transform
-          duration-300
+            <button
+              onClick={() =>
+                cambiarPagina("inicio")
+              }
+              className="
+                bg-slate-800
+                p-4 rounded-2xl
+              "
+            >
+              Inicio
+            </button>
 
-          ${
-            menuOpen
-              ? "translate-x-0"
-              : "-translate-x-full"
-          }
+            <button
+              onClick={() =>
+                cambiarPagina("entradas")
+              }
+              className="
+                bg-slate-800
+                p-4 rounded-2xl
+              "
+            >
+              Entradas
+            </button>
 
-          md:translate-x-0
-        `}
-      >
+            <button
+              onClick={() =>
+                cambiarPagina("salidas")
+              }
+              className="
+                bg-slate-800
+                p-4 rounded-2xl
+              "
+            >
+              Salidas
+            </button>
 
-        <h1 className="
-          text-3xl font-bold
-          mt-16 md:mt-0
-          mb-10
-        ">
-          CHASS IMPORT
-        </h1>
+            <button
+              onClick={() =>
+                cambiarPagina("productos")
+              }
+              className="
+                bg-slate-800
+                p-4 rounded-2xl
+              "
+            >
+              Productos
+            </button>
 
-        <div className="flex flex-col gap-4">
+            <button
+              onClick={() =>
+                cambiarPagina("ventas")
+              }
+              className="
+                bg-slate-800
+                p-4 rounded-2xl
+              "
+            >
+              Ventas
+            </button>
 
-          <button
-            onClick={() =>
-              cambiarPagina("inicio")
-            }
-            className="
-              flex items-center gap-3
-              bg-slate-800
-              hover:bg-slate-700
-              p-4 rounded-2xl
-            "
-          >
+            <button
+              onClick={cerrarSesion}
+              className="
+                bg-red-700
+                p-4 rounded-2xl
+                mt-6
+              "
+            >
+              Cerrar Sesión
+            </button>
 
-            <Home />
-
-            Inicio
-
-          </button>
-
-          <button
-            onClick={() =>
-              cambiarPagina("entradas")
-            }
-            className="
-              flex items-center gap-3
-              bg-slate-800
-              hover:bg-slate-700
-              p-4 rounded-2xl
-            "
-          >
-
-            <ArrowDownCircle />
-
-            Entradas
-
-          </button>
-
-          <button
-            onClick={() =>
-              cambiarPagina("salidas")
-            }
-            className="
-              flex items-center gap-3
-              bg-slate-800
-              hover:bg-slate-700
-              p-4 rounded-2xl
-            "
-          >
-
-            <ArrowUpCircle />
-
-            Salidas
-
-          </button>
-
-          <button
-            onClick={() =>
-              cambiarPagina("productos")
-            }
-            className="
-              flex items-center gap-3
-              bg-slate-800
-              hover:bg-slate-700
-              p-4 rounded-2xl
-            "
-          >
-
-            <Package />
-
-            Productos
-
-          </button>
-
-          <button
-            onClick={() =>
-              cambiarPagina("ventas")
-            }
-            className="
-              flex items-center gap-3
-              bg-slate-800
-              hover:bg-slate-700
-              p-4 rounded-2xl
-            "
-          >
-
-            <BarChart3 />
-
-            Ventas
-
-          </button>
-
-          <button
-            onClick={cerrarSesion}
-            className="
-              flex items-center gap-3
-              bg-red-700
-              hover:bg-red-600
-              p-4 rounded-2xl
-              mt-8
-            "
-          >
-
-            <LogOut />
-
-            Cerrar Sesión
-
-          </button>
+          </div>
 
         </div>
 
-      </div>
+      )}
 
     </>
   );
