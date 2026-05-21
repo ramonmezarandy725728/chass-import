@@ -1,85 +1,71 @@
-const eliminarEntrada = async (id) => {
-
-  const { error } = await supabase
-    .from("entradas")
-    .delete()
-    .eq("id", id);
-
-  if (!error) {
-    obtenerEntradas();
-  }
-};
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 export default function Entradas() {
 
-  const [fecha, setFecha] = useState("");
   const [cliente, setCliente] = useState("");
   const [producto, setProducto] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [monto, setMonto] = useState("");
+  const [fecha, setFecha] = useState("");
 
   const [entradas, setEntradas] = useState([]);
 
   useEffect(() => {
-    obtenerEntradas();
+    cargarEntradas();
   }, []);
 
-  const obtenerEntradas = async () => {
+  const cargarEntradas = async () => {
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("entradas")
       .select("*")
-      .order("created_at", {
+      .order("fecha", {
         ascending: false,
       });
 
-    if (!error) {
-      setEntradas(data || []);
-    }
+    setEntradas(data || []);
   };
 
-  const guardarEntrada = async () => {
+  const guardarEntrada = async (e) => {
 
-    if (
-      !fecha ||
-      !cliente ||
-      !producto ||
-      !cantidad ||
-      !monto
-    ) {
-      alert("Completa todos los campos");
-      return;
-    }
+    e.preventDefault();
 
-    const { error } = await supabase
+    await supabase
       .from("entradas")
       .insert([
         {
-          fecha,
           cliente,
           producto,
-          cantidad: Number(cantidad),
-          monto: Number(monto),
+          cantidad,
+          monto,
+          fecha,
         },
       ]);
 
-    if (!error) {
+    setCliente("");
+    setProducto("");
+    setCantidad("");
+    setMonto("");
+    setFecha("");
 
-      obtenerEntradas();
+    cargarEntradas();
+  };
 
-      setFecha("");
-      setCliente("");
-      setProducto("");
-      setCantidad("");
-      setMonto("");
+  const eliminarEntrada = async (id) => {
 
-    } else {
+    const confirmar = window.confirm(
+      "¿Eliminar entrada?"
+    );
 
-      console.log(error);
-      alert("Error al guardar");
-    }
+    if (!confirmar) return;
+
+    await supabase
+      .from("entradas")
+      .delete()
+      .eq("id", id);
+
+    cargarEntradas();
   };
 
   return (
@@ -90,16 +76,10 @@ export default function Entradas() {
         Entradas
       </h1>
 
-      <div className="bg-slate-800 p-6 rounded-2xl mb-8 grid md:grid-cols-2 gap-4">
-
-        <input
-          type="date"
-          value={fecha}
-          onChange={(e) =>
-            setFecha(e.target.value)
-          }
-          className="p-3 rounded bg-slate-900"
-        />
+      <form
+        onSubmit={guardarEntrada}
+        className="bg-slate-800 p-8 rounded-2xl mb-10 grid gap-4"
+      >
 
         <input
           type="text"
@@ -108,42 +88,18 @@ export default function Entradas() {
           onChange={(e) =>
             setCliente(e.target.value)
           }
-          className="p-3 rounded bg-slate-900"
+          className="bg-slate-900 p-4 rounded-xl"
         />
 
-        <select
+        <input
+          type="text"
+          placeholder="Producto"
           value={producto}
           onChange={(e) =>
             setProducto(e.target.value)
           }
-          className="p-3 rounded bg-slate-900"
-        >
-
-          <option value="">
-            Producto
-          </option>
-
-          <option>
-            iPhone Mixtos
-          </option>
-
-          <option>
-            iPhone 15
-          </option>
-
-          <option>
-            iPhone 16
-          </option>
-
-          <option>
-            iPhone 17
-          </option>
-
-          <option>
-            Productos Externos
-          </option>
-
-        </select>
+          className="bg-slate-900 p-4 rounded-xl"
+        />
 
         <input
           type="number"
@@ -152,7 +108,7 @@ export default function Entradas() {
           onChange={(e) =>
             setCantidad(e.target.value)
           }
-          className="p-3 rounded bg-slate-900"
+          className="bg-slate-900 p-4 rounded-xl"
         />
 
         <input
@@ -162,51 +118,63 @@ export default function Entradas() {
           onChange={(e) =>
             setMonto(e.target.value)
           }
-          className="p-3 rounded bg-slate-900"
+          className="bg-slate-900 p-4 rounded-xl"
         />
 
-      </div>
+        <input
+          type="date"
+          value={fecha}
+          onChange={(e) =>
+            setFecha(e.target.value)
+          }
+          className="bg-slate-900 p-4 rounded-xl"
+        />
 
-      <button
-        onClick={guardarEntrada}
-        className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl mb-8"
-      >
-        Guardar Entrada
-      </button>
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 p-4 rounded-xl font-bold"
+        >
 
-      <div className="bg-slate-800 p-6 rounded-2xl mb-8 overflow-auto">
+          Guardar Entrada
 
-        <h2 className="text-2xl font-bold mb-6">
+        </button>
+
+      </form>
+
+      <div className="bg-slate-800 p-8 rounded-2xl overflow-auto">
+
+        <h2 className="text-3xl font-bold mb-6">
           Historial de Entradas
         </h2>
 
-        <table className="w-full text-left border-collapse">
+        <table className="w-full">
 
-          <thead className="bg-slate-700">
+          <thead>
 
-            <tr>
+            <tr className="bg-slate-700 text-left">
 
-              <th className="p-3">
+              <th className="p-4">
                 Fecha
               </th>
 
-              <th className="p-3">
+              <th className="p-4">
                 Cliente
               </th>
 
-              <th className="p-3">
+              <th className="p-4">
                 Producto
               </th>
 
-              <th className="p-3">
+              <th className="p-4">
                 Cantidad
               </th>
 
-              <th className="p-3">
+              <th className="p-4">
                 Monto
               </th>
-              <th className="p-3">
-                 Acciones
+
+              <th className="p-4">
+                Acciones
               </th>
 
             </tr>
@@ -215,106 +183,57 @@ export default function Entradas() {
 
           <tbody>
 
-  {entradas.map((entrada) => (
+            {entradas.map((entrada) => (
 
-    <tr
-      key={entrada.id}
-      className="border-b border-slate-700"
-    >
+              <tr
+                key={entrada.id}
+                className="border-b border-slate-700"
+              >
 
-      <td className="p-4">
-        {entrada.fecha}
-      </td>
+                <td className="p-4">
+                  {entrada.fecha}
+                </td>
 
-      <td className="p-4">
-        {entrada.cliente}
-      </td>
-
-      <td className="p-4">
-        {entrada.producto}
-      </td>
-
-      <td className="p-4">
-        {entrada.cantidad}
-      </td>
-
-      <td className="p-4 text-green-400 font-bold">
-        S/ {entrada.monto}
-      </td>
-
-      <td className="p-4">
-
-        <div className="flex gap-2">
-
-          <button
-            onClick={() =>
-              eliminarEntrada(
-                entrada.id
-              )
-            }
-            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold"
-          >
-
-            Eliminar
-
-          </button>
-
-        </div>
-
-      </td>
-
-    </tr>
-
-  ))}
-
-</tbody>
-        </table>
-
-      </div>
-
-      <div className="bg-slate-800 p-6 rounded-2xl">
-
-        <h2 className="text-2xl font-bold mb-6">
-          Clientes que más compran
-        </h2>
-
-        <div className="space-y-4">
-
-          {entradas.map((entrada) => (
-
-            <div key={entrada.id}>
-
-              <div className="flex justify-between mb-2">
-
-                <span>
+                <td className="p-4">
                   {entrada.cliente}
-                </span>
+                </td>
 
-                <span>
+                <td className="p-4">
+                  {entrada.producto}
+                </td>
+
+                <td className="p-4">
+                  {entrada.cantidad}
+                </td>
+
+                <td className="p-4 text-green-400 font-bold">
                   S/ {entrada.monto}
-                </span>
+                </td>
 
-              </div>
+                <td className="p-4">
 
-              <div className="w-full bg-slate-700 rounded-full h-5">
+                  <button
+                    onClick={() =>
+                      eliminarEntrada(
+                        entrada.id
+                      )
+                    }
+                    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold"
+                  >
 
-                <div
-                  className="bg-blue-500 h-5 rounded-full"
-                  style={{
-                    width: `${Math.min(
-                      entrada.monto / 10,
-                      100
-                    )}%`,
-                  }}
-                ></div>
+                    Eliminar
 
-              </div>
+                  </button>
 
-            </div>
+                </td>
 
-          ))}
+              </tr>
 
-        </div>
+            ))}
+
+          </tbody>
+
+        </table>
 
       </div>
 

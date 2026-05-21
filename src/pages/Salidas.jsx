@@ -1,79 +1,65 @@
-const eliminarSalida = async (id) => {
-
-  const { error } = await supabase
-    .from("salidas")
-    .delete()
-    .eq("id", id);
-
-  if (!error) {
-    obtenerSalidas();
-  }
-};
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 export default function Salidas() {
 
-  const [fecha, setFecha] = useState("");
-  const [descripcion, setDescripcion] =
-    useState("");
-
+  const [descripcion, setDescripcion] = useState("");
   const [monto, setMonto] = useState("");
+  const [fecha, setFecha] = useState("");
 
   const [salidas, setSalidas] = useState([]);
 
   useEffect(() => {
-    obtenerSalidas();
+    cargarSalidas();
   }, []);
 
-  const obtenerSalidas = async () => {
+  const cargarSalidas = async () => {
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("salidas")
       .select("*")
-      .order("created_at", {
+      .order("fecha", {
         ascending: false,
       });
 
-    if (!error) {
-      setSalidas(data || []);
-    }
+    setSalidas(data || []);
   };
 
-  const guardarSalida = async () => {
+  const guardarSalida = async (e) => {
 
-    if (
-      !fecha ||
-      !descripcion ||
-      !monto
-    ) {
-      alert("Completa todos los campos");
-      return;
-    }
+    e.preventDefault();
 
-    const { error } = await supabase
+    await supabase
       .from("salidas")
       .insert([
         {
-          fecha,
           descripcion,
-          monto: Number(monto),
+          monto,
+          fecha,
         },
       ]);
 
-    if (!error) {
+    setDescripcion("");
+    setMonto("");
+    setFecha("");
 
-      obtenerSalidas();
+    cargarSalidas();
+  };
 
-      setFecha("");
-      setDescripcion("");
-      setMonto("");
+  const eliminarSalida = async (id) => {
 
-    } else {
+    const confirmar = window.confirm(
+      "¿Eliminar salida?"
+    );
 
-      console.log(error);
-      alert("Error al guardar");
-    }
+    if (!confirmar) return;
+
+    await supabase
+      .from("salidas")
+      .delete()
+      .eq("id", id);
+
+    cargarSalidas();
   };
 
   return (
@@ -84,16 +70,10 @@ export default function Salidas() {
         Salidas
       </h1>
 
-      <div className="bg-slate-800 p-6 rounded-2xl mb-8 grid md:grid-cols-2 gap-4">
-
-        <input
-          type="date"
-          value={fecha}
-          onChange={(e) =>
-            setFecha(e.target.value)
-          }
-          className="p-3 rounded bg-slate-900"
-        />
+      <form
+        onSubmit={guardarSalida}
+        className="bg-slate-800 p-8 rounded-2xl mb-10 grid gap-4"
+      >
 
         <input
           type="text"
@@ -102,7 +82,7 @@ export default function Salidas() {
           onChange={(e) =>
             setDescripcion(e.target.value)
           }
-          className="p-3 rounded bg-slate-900"
+          className="bg-slate-900 p-4 rounded-xl"
         />
 
         <input
@@ -112,44 +92,56 @@ export default function Salidas() {
           onChange={(e) =>
             setMonto(e.target.value)
           }
-          className="p-3 rounded bg-slate-900"
+          className="bg-slate-900 p-4 rounded-xl"
         />
 
-      </div>
+        <input
+          type="date"
+          value={fecha}
+          onChange={(e) =>
+            setFecha(e.target.value)
+          }
+          className="bg-slate-900 p-4 rounded-xl"
+        />
 
-      <button
-        onClick={guardarSalida}
-        className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-xl mb-8"
-      >
-        Guardar Salida
-      </button>
+        <button
+          type="submit"
+          className="bg-red-600 hover:bg-red-700 p-4 rounded-xl font-bold"
+        >
 
-      <div className="bg-slate-800 p-6 rounded-2xl overflow-auto">
+          Guardar Salida
 
-        <h2 className="text-2xl font-bold mb-6">
+        </button>
+
+      </form>
+
+      <div className="bg-slate-800 p-8 rounded-2xl overflow-auto">
+
+        <h2 className="text-3xl font-bold mb-6">
           Historial de Salidas
         </h2>
 
-        <table className="w-full text-left border-collapse">
+        <table className="w-full">
 
-          <thead className="bg-slate-700">
+          <thead>
 
-            <tr>
+            <tr className="bg-slate-700 text-left">
 
-              <th className="p-3">
+              <th className="p-4">
                 Fecha
               </th>
 
-              <th className="p-3">
+              <th className="p-4">
                 Descripción
               </th>
 
-              <th className="p-3">
+              <th className="p-4">
                 Monto
               </th>
-              <th className="p-3">
-  Acciones
-</th>
+
+              <th className="p-4">
+                Acciones
+              </th>
 
             </tr>
 
@@ -157,47 +149,47 @@ export default function Salidas() {
 
           <tbody>
 
-  {salidas.map((salida) => (
+            {salidas.map((salida) => (
 
-    <tr
-      key={salida.id}
-      className="border-b border-slate-700"
-    >
+              <tr
+                key={salida.id}
+                className="border-b border-slate-700"
+              >
 
-      <td className="p-4">
-        {salida.fecha}
-      </td>
+                <td className="p-4">
+                  {salida.fecha}
+                </td>
 
-      <td className="p-4">
-        {salida.descripcion}
-      </td>
+                <td className="p-4">
+                  {salida.descripcion}
+                </td>
 
-      <td className="p-4 text-red-400 font-bold">
-        S/ {salida.monto}
-      </td>
+                <td className="p-4 text-red-400 font-bold">
+                  S/ {salida.monto}
+                </td>
 
-      <td className="p-4">
+                <td className="p-4">
 
-        <button
-          onClick={() =>
-            eliminarSalida(
-              salida.id
-            )
-          }
-          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold"
-        >
+                  <button
+                    onClick={() =>
+                      eliminarSalida(
+                        salida.id
+                      )
+                    }
+                    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold"
+                  >
 
-          Eliminar
+                    Eliminar
 
-        </button>
+                  </button>
 
-      </td>
+                </td>
 
-    </tr>
+              </tr>
 
-  ))}
+            ))}
 
-</tbody>
+          </tbody>
 
         </table>
 
