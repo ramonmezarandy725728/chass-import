@@ -3,13 +3,13 @@ import { supabase } from "../lib/supabase";
 
 export default function Entradas() {
 
+  const [entradas, setEntradas] = useState([]);
+
   const [cliente, setCliente] = useState("");
   const [producto, setProducto] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [monto, setMonto] = useState("");
   const [fecha, setFecha] = useState("");
-
-  const [entradas, setEntradas] = useState([]);
 
   useEffect(() => {
     cargarEntradas();
@@ -20,12 +20,10 @@ export default function Entradas() {
     const { data, error } = await supabase
       .from("entradas")
       .select("*")
-      .order("id", {
-        ascending: false,
-      });
+      .order("id", { ascending: false });
 
     if (!error) {
-      setEntradas(data || []);
+      setEntradas(data);
     }
   }
 
@@ -39,27 +37,22 @@ export default function Entradas() {
         {
           cliente,
           producto,
-          cantidad: Number(cantidad),
-          monto: Number(monto),
+          cantidad,
+          monto,
           fecha,
         },
       ]);
 
-    if (error) {
+    if (!error) {
 
-      console.log(error);
-      alert("Error al guardar");
+      setCliente("");
+      setProducto("");
+      setCantidad("");
+      setMonto("");
+      setFecha("");
 
-      return;
+      cargarEntradas();
     }
-
-    setCliente("");
-    setProducto("");
-    setCantidad("");
-    setMonto("");
-    setFecha("");
-
-    cargarEntradas();
   }
 
   async function eliminarEntrada(id) {
@@ -84,16 +77,16 @@ export default function Entradas() {
 
     <div className="text-white">
 
-      <h1 className="text-4xl font-bold mb-8">
-        Ventas
+      <h1 className="text-5xl font-bold mb-10">
+        Entradas
       </h1>
 
       <form
         onSubmit={guardarEntrada}
-        className="bg-slate-800 p-6 rounded-2xl mb-8"
+        className="bg-slate-800 p-8 rounded-3xl mb-10"
       >
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-6">
 
           <input
             type="text"
@@ -107,69 +100,65 @@ export default function Entradas() {
           />
 
           <select
-  value={producto}
-  onChange={(e) =>
-    setProducto(e.target.value)
-  }
-  className="w-full bg-slate-900 p-4 rounded-xl text-white"
->
-  <option value="">
-    Seleccionar Marca / Modelo
-  </option>
-
-  <option>iPhone 7</option>
-  <option>iPhone 7 Plus</option>
-
-  <option>iPhone 8</option>
-  <option>iPhone 8 Plus</option>
-
-  <option>iPhone X</option>
-  <option>iPhone XR</option>
-  <option>iPhone XS</option>
-  <option>iPhone XS Max</option>
-
-  <option>iPhone 11</option>
-  <option>iPhone 11 Pro</option>
-  <option>iPhone 11 Pro Max</option>
-
-  <option>iPhone 12</option>
-  <option>iPhone 12 Mini</option>
-  <option>iPhone 12 Pro</option>
-  <option>iPhone 12 Pro Max</option>
-
-  <option>iPhone 13</option>
-  <option>iPhone 13 Mini</option>
-  <option>iPhone 13 Pro</option>
-  <option>iPhone 13 Pro Max</option>
-
-  <option>iPhone 14</option>
-  <option>iPhone 14 Plus</option>
-  <option>iPhone 14 Pro</option>
-  <option>iPhone 14 Pro Max</option>
-
-  <option>iPhone 15</option>
-  <option>iPhone 15 Plus</option>
-  <option>iPhone 15 Pro</option>
-  <option>iPhone 15 Pro Max</option>
-
-  <option>iPhone 16</option>
-  <option>iPhone 16 Plus</option>
-  <option>iPhone 16 Pro</option>
-  <option>iPhone 16 Pro Max</option>
-
-  <option>iPhone 17</option>
-<option>iPhone 17 Plus</option>
-<option>iPhone 17 Pro</option>
-<option>iPhone 17 Pro Max</option>
-<option>iPhone 17 Air</option>
-</select>
             value={producto}
             onChange={(e) =>
               setProducto(e.target.value)
             }
             className="bg-slate-900 p-4 rounded-xl"
             required
-          /
+          >
+
+            <option value="">
+              Seleccionar Marca / Modelo
+            </option>
+
+            <option>iPhone 7</option>
+            <option>iPhone 7 Plus</option>
+
+            <option>iPhone 8</option>
+            <option>iPhone 8 Plus</option>
+
+            <option>iPhone X</option>
+            <option>iPhone XR</option>
+            <option>iPhone XS</option>
+            <option>iPhone XS Max</option>
+
+            <option>iPhone 11</option>
+            <option>iPhone 11 Pro</option>
+            <option>iPhone 11 Pro Max</option>
+
+            <option>iPhone 12</option>
+            <option>iPhone 12 Mini</option>
+            <option>iPhone 12 Pro</option>
+            <option>iPhone 12 Pro Max</option>
+
+            <option>iPhone 13</option>
+            <option>iPhone 13 Mini</option>
+            <option>iPhone 13 Pro</option>
+            <option>iPhone 13 Pro Max</option>
+
+            <option>iPhone 14</option>
+            <option>iPhone 14 Plus</option>
+            <option>iPhone 14 Pro</option>
+            <option>iPhone 14 Pro Max</option>
+
+            <option>iPhone 15</option>
+            <option>iPhone 15 Plus</option>
+            <option>iPhone 15 Pro</option>
+            <option>iPhone 15 Pro Max</option>
+
+            <option>iPhone 16</option>
+            <option>iPhone 16 Plus</option>
+            <option>iPhone 16 Pro</option>
+            <option>iPhone 16 Pro Max</option>
+
+            <option>iPhone 17</option>
+            <option>iPhone 17 Plus</option>
+            <option>iPhone 17 Pro</option>
+            <option>iPhone 17 Pro Max</option>
+            <option>iPhone 17 Air</option>
+
+          </select>
 
           <input
             type="number"
@@ -177,6 +166,16 @@ export default function Entradas() {
             value={cantidad}
             onChange={(e) =>
               setCantidad(e.target.value)
+            }
+            className="bg-slate-900 p-4 rounded-xl"
+            required
+          />
+
+          <input
+            type="date"
+            value={fecha}
+            onChange={(e) =>
+              setFecha(e.target.value)
             }
             className="bg-slate-900 p-4 rounded-xl"
             required
@@ -193,33 +192,21 @@ export default function Entradas() {
             required
           />
 
-          <input
-            type="date"
-            value={fecha}
-            onChange={(e) =>
-              setFecha(e.target.value)
-            }
-            className="bg-slate-900 p-4 rounded-xl"
-            required
-          />
-
         </div>
 
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-xl mt-6"
+          className="bg-blue-600 hover:bg-blue-700 px-10 py-4 rounded-2xl mt-8 text-xl font-bold"
         >
-
-          Guardar Venta
-
+          Guardar Entrada
         </button>
 
       </form>
 
-      <div className="bg-slate-800 p-6 rounded-2xl">
+      <div className="bg-slate-800 p-8 rounded-3xl">
 
-        <h2 className="text-3xl font-bold mb-6">
-          Historial de Ventas
+        <h2 className="text-4xl font-bold mb-8">
+          Historial de Entradas
         </h2>
 
         <div className="overflow-auto">
@@ -260,44 +247,44 @@ export default function Entradas() {
 
             <tbody>
 
-              {entradas.map((item) => (
+              {entradas.map((entrada) => (
 
                 <tr
-                  key={item.id}
+                  key={entrada.id}
                   className="border-b border-slate-700"
                 >
 
                   <td className="p-4">
-                    {item.fecha}
+                    {entrada.fecha}
                   </td>
 
                   <td className="p-4">
-                    {item.cliente}
+                    {entrada.cliente}
                   </td>
 
                   <td className="p-4">
-                    {item.producto}
+                    {entrada.producto}
                   </td>
 
                   <td className="p-4">
-                    {item.cantidad}
+                    {entrada.cantidad}
                   </td>
 
                   <td className="p-4 text-green-400 font-bold">
-                    S/ {item.monto}
+                    S/ {entrada.monto}
                   </td>
 
                   <td className="p-4">
 
                     <button
                       onClick={() =>
-                        eliminarEntrada(item.id)
+                        eliminarEntrada(
+                          entrada.id
+                        )
                       }
-                      className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg"
+                      className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-xl font-bold"
                     >
-
                       Eliminar
-
                     </button>
 
                   </td>

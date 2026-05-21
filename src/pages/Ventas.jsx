@@ -1,249 +1,301 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  BarChart,
-  Bar,
-} from "recharts";
 
 export default function Ventas() {
-  const [entradas, setEntradas] = useState([]);
-  const [salidas, setSalidas] = useState([]);
+
+  const [ventas, setVentas] = useState([]);
+
+  const [cliente, setCliente] = useState("");
+  const [producto, setProducto] = useState("");
+  const [cantidad, setCantidad] = useState("");
+  const [monto, setMonto] = useState("");
+  const [fecha, setFecha] = useState("");
 
   useEffect(() => {
-    cargarDatos();
+    cargarVentas();
   }, []);
 
-  async function cargarDatos() {
-    const { data: entradasData, error: errorEntradas } =
-      await supabase
-        .from("entradas")
-        .select("*")
-        .order("fecha", { ascending: true });
+  async function cargarVentas() {
 
-    const { data: salidasData, error: errorSalidas } =
-      await supabase
-        .from("salidas")
-        .select("*")
-        .order("fecha", { ascending: true });
+    const { data, error } = await supabase
+      .from("ventas")
+      .select("*")
+      .order("id", { ascending: false });
 
-    if (errorEntradas) {
-      console.log(errorEntradas);
+    if (!error) {
+      setVentas(data);
     }
-
-    if (errorSalidas) {
-      console.log(errorSalidas);
-    }
-
-    setEntradas(entradasData || []);
-    setSalidas(salidasData || []);
   }
 
-  const totalVendido = entradas.reduce(
-    (acc, item) => acc + Number(item.monto || 0),
-    0
-  );
+  async function guardarVenta(e) {
 
-  const totalSalidas = salidas.reduce(
-    (acc, item) => acc + Number(item.monto || 0),
-    0
-  );
+    e.preventDefault();
 
-  const ventasPorFecha = {};
+    const { error } = await supabase
+      .from("ventas")
+      .insert([
+        {
+          cliente,
+          producto,
+          cantidad,
+          monto,
+          fecha,
+        },
+      ]);
 
-  entradas.forEach((item) => {
-    if (!ventasPorFecha[item.fecha]) {
-      ventasPorFecha[item.fecha] = 0;
+    if (!error) {
+
+      setCliente("");
+      setProducto("");
+      setCantidad("");
+      setMonto("");
+      setFecha("");
+
+      cargarVentas();
     }
-
-    ventasPorFecha[item.fecha] += Number(item.monto || 0);
-  });
-
-  const datosGrafico = Object.keys(ventasPorFecha).map(
-    (fecha) => ({
-      fecha,
-      monto: ventasPorFecha[fecha],
-    })
-  );
-
-  let mejorDia = "Sin datos";
-
-  if (datosGrafico.length > 0) {
-    const mayor = datosGrafico.reduce((prev, current) =>
-      prev.monto > current.monto ? prev : current
-    );
-
-    mejorDia = mayor.fecha;
   }
 
-  const productosMap = {};
+  async function eliminarVenta(id) {
 
-  entradas.forEach((item) => {
-    if (!productosMap[item.producto]) {
-      productosMap[item.producto] = 0;
-    }
-
-    productosMap[item.producto] += Number(
-      item.cantidad || 0
+    const confirmar = window.confirm(
+      "¿Deseas eliminar esta venta?"
     );
-  });
 
-  const productosGrafico = Object.keys(productosMap).map(
-    (producto) => ({
-      producto,
-      cantidad: productosMap[producto],
-    })
-  );
+    if (!confirmar) return;
 
-  const flujoSemanal = [
-    {
-      name: "Entradas",
-      monto: totalVendido,
-    },
-    {
-      name: "Salidas",
-      monto: totalSalidas,
-    },
-  ];
+    const { error } = await supabase
+      .from("ventas")
+      .delete()
+      .eq("id", id);
+
+    if (!error) {
+      cargarVentas();
+    }
+  }
 
   return (
+
     <div className="text-white">
 
-      <h1 className="text-6xl font-bold mb-2">
+      <h1 className="text-5xl font-bold mb-10">
         Ventas
       </h1>
 
-      <p className="text-gray-400 mb-10 text-2xl">
-        Estadísticas semanales de ventas
-      </p>
+      <form
+        onSubmit={guardarVenta}
+        className="bg-slate-800 p-8 rounded-3xl mb-10"
+      >
 
-      <div className="grid md:grid-cols-3 gap-6 mb-10">
+        <div className="grid md:grid-cols-2 gap-6">
 
-        <div className="bg-black/40 p-8 rounded-3xl">
-          <h2 className="text-3xl text-gray-300 mb-4">
-            Total Vendido
-          </h2>
+          <input
+            type="text"
+            placeholder="Cliente"
+            value={cliente}
+            onChange={(e) =>
+              setCliente(e.target.value)
+            }
+            className="bg-slate-900 p-4 rounded-xl"
+            required
+          />
 
-          <p className="text-6xl font-bold text-green-400">
-            S/ {totalVendido}
-          </p>
-        </div>
-
-        <div className="bg-black/40 p-8 rounded-3xl">
-          <h2 className="text-3xl text-gray-300 mb-4">
-            Mejor Día
-          </h2>
-
-          <p className="text-5xl font-bold text-blue-400">
-            {mejorDia}
-          </p>
-        </div>
-
-        <div className="bg-black/40 p-8 rounded-3xl">
-          <h2 className="text-3xl text-gray-300 mb-4">
-            Ventas Registradas
-          </h2>
-
-          <p className="text-6xl font-bold text-yellow-400">
-            {entradas.length}
-          </p>
-        </div>
-
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-8 mb-10">
-
-        <div className="bg-black/40 p-8 rounded-3xl">
-
-          <h2 className="text-5xl font-bold mb-8">
-            Ventas por Día
-          </h2>
-
-          <ResponsiveContainer
-            width="100%"
-            height={350}
+          <select
+            value={producto}
+            onChange={(e) =>
+              setProducto(e.target.value)
+            }
+            className="bg-slate-900 p-4 rounded-xl"
+            required
           >
-            <LineChart data={datosGrafico}>
-              <CartesianGrid strokeDasharray="3 3" />
 
-              <XAxis dataKey="fecha" />
+            <option value="">
+              Seleccionar Marca / Modelo
+            </option>
 
-              <YAxis />
+            <option>iPhone 7</option>
+            <option>iPhone 7 Plus</option>
 
-              <Tooltip />
+            <option>iPhone 8</option>
+            <option>iPhone 8 Plus</option>
 
-              <Line
-                type="monotone"
-                dataKey="monto"
-                stroke="#00ff99"
-                strokeWidth={4}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+            <option>iPhone X</option>
+            <option>iPhone XR</option>
+            <option>iPhone XS</option>
+            <option>iPhone XS Max</option>
+
+            <option>iPhone 11</option>
+            <option>iPhone 11 Pro</option>
+            <option>iPhone 11 Pro Max</option>
+
+            <option>iPhone 12 Mini</option>
+            <option>iPhone 12</option>
+            <option>iPhone 12 Pro</option>
+            <option>iPhone 12 Pro Max</option>
+
+            <option>iPhone 13 Mini</option>
+            <option>iPhone 13</option>
+            <option>iPhone 13 Pro</option>
+            <option>iPhone 13 Pro Max</option>
+
+            <option>iPhone 14</option>
+            <option>iPhone 14 Plus</option>
+            <option>iPhone 14 Pro</option>
+            <option>iPhone 14 Pro Max</option>
+
+            <option>iPhone 15</option>
+            <option>iPhone 15 Plus</option>
+            <option>iPhone 15 Pro</option>
+            <option>iPhone 15 Pro Max</option>
+
+            <option>iPhone 16</option>
+            <option>iPhone 16 Plus</option>
+            <option>iPhone 16 Pro</option>
+            <option>iPhone 16 Pro Max</option>
+
+            <option>iPhone 17</option>
+            <option>iPhone 17 Plus</option>
+            <option>iPhone 17 Pro</option>
+            <option>iPhone 17 Pro Max</option>
+            <option>iPhone 17 Air</option>
+
+          </select>
+
+          <input
+            type="number"
+            placeholder="Cantidad"
+            value={cantidad}
+            onChange={(e) =>
+              setCantidad(e.target.value)
+            }
+            className="bg-slate-900 p-4 rounded-xl"
+            required
+          />
+
+          <input
+            type="date"
+            value={fecha}
+            onChange={(e) =>
+              setFecha(e.target.value)
+            }
+            className="bg-slate-900 p-4 rounded-xl"
+            required
+          />
+
+          <input
+            type="number"
+            placeholder="Monto"
+            value={monto}
+            onChange={(e) =>
+              setMonto(e.target.value)
+            }
+            className="bg-slate-900 p-4 rounded-xl"
+            required
+          />
 
         </div>
 
-        <div className="bg-black/40 p-8 rounded-3xl">
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 px-10 py-4 rounded-2xl mt-8 text-xl font-bold"
+        >
+          Guardar Venta
+        </button>
 
-          <h2 className="text-5xl font-bold mb-8">
-            Flujo Semanal
-          </h2>
+      </form>
 
-          <ResponsiveContainer
-            width="100%"
-            height={350}
-          >
-            <BarChart data={flujoSemanal}>
-              <CartesianGrid strokeDasharray="3 3" />
+      <div className="bg-slate-800 p-8 rounded-3xl">
 
-              <XAxis dataKey="name" />
-
-              <YAxis />
-
-              <Tooltip />
-
-              <Bar
-                dataKey="monto"
-                fill="#3b82f6"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-
-        </div>
-
-      </div>
-
-      <div className="bg-black/40 p-8 rounded-3xl">
-
-        <h2 className="text-5xl font-bold mb-8">
-          Productos Más Vendidos
+        <h2 className="text-4xl font-bold mb-8">
+          Historial de Ventas
         </h2>
 
-        <ResponsiveContainer
-          width="100%"
-          height={400}
-        >
-          <BarChart data={productosGrafico}>
-            <CartesianGrid strokeDasharray="3 3" />
+        <div className="overflow-auto">
 
-            <XAxis dataKey="producto" />
+          <table className="w-full">
 
-            <YAxis />
+            <thead>
 
-            <Tooltip />
+              <tr className="text-left border-b border-slate-600">
 
-            <Bar
-              dataKey="cantidad"
-              fill="#06b6d4"
-            />
-          </BarChart>
-        </ResponsiveContainer>
+                <th className="p-4">
+                  Fecha
+                </th>
+
+                <th className="p-4">
+                  Cliente
+                </th>
+
+                <th className="p-4">
+                  Producto
+                </th>
+
+                <th className="p-4">
+                  Cantidad
+                </th>
+
+                <th className="p-4">
+                  Monto
+                </th>
+
+                <th className="p-4">
+                  Acción
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {ventas.map((venta) => (
+
+                <tr
+                  key={venta.id}
+                  className="border-b border-slate-700"
+                >
+
+                  <td className="p-4">
+                    {venta.fecha}
+                  </td>
+
+                  <td className="p-4">
+                    {venta.cliente}
+                  </td>
+
+                  <td className="p-4">
+                    {venta.producto}
+                  </td>
+
+                  <td className="p-4">
+                    {venta.cantidad}
+                  </td>
+
+                  <td className="p-4 text-green-400 font-bold">
+                    S/ {venta.monto}
+                  </td>
+
+                  <td className="p-4">
+
+                    <button
+                      onClick={() =>
+                        eliminarVenta(venta.id)
+                      }
+                      className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-xl font-bold"
+                    >
+                      Eliminar
+                    </button>
+
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
 
       </div>
 
