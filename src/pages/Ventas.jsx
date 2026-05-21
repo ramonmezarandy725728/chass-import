@@ -1,289 +1,252 @@
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
+  Tooltip,
+  ResponsiveContainer,
   CartesianGrid,
-  Legend,
+  BarChart,
+  Bar,
 } from "recharts";
 
-function Ventas() {
+export default function Ventas() {
+  const [entradas, setEntradas] = useState([]);
+  const [salidas, setSalidas] = useState([]);
 
-  const entradas =
-    JSON.parse(localStorage.getItem("entradas")) || [];
+  useEffect(() => {
+    cargarDatos();
+  }, []);
 
-  // DIAS
-  const diasSemana = [
-    "Domingo",
-    "Lunes",
-    "Martes",
-    "Miércoles",
-    "Jueves",
-    "Viernes",
-    "Sábado",
-  ];
+  async function cargarDatos() {
+    const { data: entradasData, error: errorEntradas } =
+      await supabase
+        .from("entradas")
+        .select("*")
+        .order("fecha", { ascending: true });
 
-  // AGRUPAR VENTAS POR DIA
-  const ventasPorDia = {};
+    const { data: salidasData, error: errorSalidas } =
+      await supabase
+        .from("salidas")
+        .select("*")
+        .order("fecha", { ascending: true });
 
-  entradas.forEach((venta) => {
-
-    const fecha = new Date(venta.fecha);
-
-    const dia =
-      diasSemana[fecha.getDay()];
-
-    if (ventasPorDia[dia]) {
-
-      ventasPorDia[dia] +=
-        Number(venta.monto);
-
-    } else {
-
-      ventasPorDia[dia] =
-        Number(venta.monto);
+    if (errorEntradas) {
+      console.log(errorEntradas);
     }
-  });
 
-  // DATA GRAFICOS
-  const data = Object.keys(ventasPorDia).map(
-    (dia) => ({
-      dia,
-      ventas: ventasPorDia[dia],
-    })
-  );
+    if (errorSalidas) {
+      console.log(errorSalidas);
+    }
 
-  // TOTAL SEMANA
-  const totalSemana = data.reduce(
-    (acc, item) => acc + item.ventas,
+    setEntradas(entradasData || []);
+    setSalidas(salidasData || []);
+  }
+
+  const totalVendido = entradas.reduce(
+    (acc, item) => acc + Number(item.monto || 0),
     0
   );
 
-  // MEJOR DIA
-  const mejorDia =
-    data.length > 0
-      ? data.reduce((max, item) =>
-          item.ventas > max.ventas
-            ? item
-            : max
-        )
-      : null;
+  const totalSalidas = salidas.reduce(
+    (acc, item) => acc + Number(item.monto || 0),
+    0
+  );
 
-  const COLORS = [
-    "#22c55e",
-    "#3b82f6",
-    "#f59e0b",
-    "#ef4444",
-    "#8b5cf6",
-    "#06b6d4",
+  const ventasPorFecha = {};
+
+  entradas.forEach((item) => {
+    if (!ventasPorFecha[item.fecha]) {
+      ventasPorFecha[item.fecha] = 0;
+    }
+
+    ventasPorFecha[item.fecha] += Number(item.monto || 0);
+  });
+
+  const datosGrafico = Object.keys(ventasPorFecha).map(
+    (fecha) => ({
+      fecha,
+      monto: ventasPorFecha[fecha],
+    })
+  );
+
+  let mejorDia = "Sin datos";
+
+  if (datosGrafico.length > 0) {
+    const mayor = datosGrafico.reduce((prev, current) =>
+      prev.monto > current.monto ? prev : current
+    );
+
+    mejorDia = mayor.fecha;
+  }
+
+  const productosMap = {};
+
+  entradas.forEach((item) => {
+    if (!productosMap[item.producto]) {
+      productosMap[item.producto] = 0;
+    }
+
+    productosMap[item.producto] += Number(
+      item.cantidad || 0
+    );
+  });
+
+  const productosGrafico = Object.keys(productosMap).map(
+    (producto) => ({
+      producto,
+      cantidad: productosMap[producto],
+    })
+  );
+
+  const flujoSemanal = [
+    {
+      name: "Entradas",
+      monto: totalVendido,
+    },
+    {
+      name: "Salidas",
+      monto: totalSalidas,
+    },
   ];
 
   return (
-    <div className="flex-1 min-h-screen bg-slate-900 text-white p-10">
+    <div className="text-white">
 
-      {/* TITULO */}
-      <div className="mb-10">
+      <h1 className="text-6xl font-bold mb-2">
+        Ventas
+      </h1>
 
-        <h1 className="text-5xl font-black mb-3">
-          Ventas
-        </h1>
+      <p className="text-gray-400 mb-10 text-2xl">
+        Estadísticas semanales de ventas
+      </p>
 
-        <p className="text-slate-400 text-lg">
-          Estadísticas semanales de ventas
-        </p>
+      <div className="grid md:grid-cols-3 gap-6 mb-10">
 
-      </div>
-
-      {/* TARJETAS */}
-      <div className="grid grid-cols-3 gap-6 mb-10">
-
-        <div className="bg-slate-950 p-6 rounded-3xl">
-
-          <p className="text-slate-400 mb-3">
+        <div className="bg-black/40 p-8 rounded-3xl">
+          <h2 className="text-3xl text-gray-300 mb-4">
             Total Vendido
-          </p>
-
-          <h2 className="text-5xl font-black text-green-400">
-            S/ {totalSemana}
           </h2>
 
+          <p className="text-6xl font-bold text-green-400">
+            S/ {totalVendido}
+          </p>
         </div>
 
-        <div className="bg-slate-950 p-6 rounded-3xl">
-
-          <p className="text-slate-400 mb-3">
+        <div className="bg-black/40 p-8 rounded-3xl">
+          <h2 className="text-3xl text-gray-300 mb-4">
             Mejor Día
-          </p>
-
-          <h2 className="text-4xl font-black text-blue-400">
-
-            {mejorDia
-              ? mejorDia.dia
-              : "Sin datos"}
-
           </h2>
 
+          <p className="text-5xl font-bold text-blue-400">
+            {mejorDia}
+          </p>
         </div>
 
-        <div className="bg-slate-950 p-6 rounded-3xl">
-
-          <p className="text-slate-400 mb-3">
+        <div className="bg-black/40 p-8 rounded-3xl">
+          <h2 className="text-3xl text-gray-300 mb-4">
             Ventas Registradas
-          </p>
-
-          <h2 className="text-5xl font-black text-yellow-400">
-            {entradas.length}
           </h2>
 
+          <p className="text-6xl font-bold text-yellow-400">
+            {entradas.length}
+          </p>
         </div>
 
       </div>
 
-      {/* GRAFICOS */}
-      <div className="grid grid-cols-2 gap-6 mb-10">
+      <div className="grid lg:grid-cols-2 gap-8 mb-10">
 
-        {/* PIE CHART */}
-        <div className="bg-slate-950 p-6 rounded-3xl">
+        <div className="bg-black/40 p-8 rounded-3xl">
 
-          <h2 className="text-3xl font-bold mb-6">
+          <h2 className="text-5xl font-bold mb-8">
             Ventas por Día
           </h2>
 
-          <ResponsiveContainer width="100%" height={350}>
+          <ResponsiveContainer
+            width="100%"
+            height={350}
+          >
+            <LineChart data={datosGrafico}>
+              <CartesianGrid strokeDasharray="3 3" />
 
-            <PieChart>
+              <XAxis dataKey="fecha" />
 
-              <Pie
-                data={data}
-                dataKey="ventas"
-                nameKey="dia"
-                outerRadius={120}
-                label
-              >
-
-                {data.map((entry, index) => (
-
-                  <Cell
-                    key={index}
-                    fill={
-                      COLORS[
-                        index % COLORS.length
-                      ]
-                    }
-                  />
-
-                ))}
-
-              </Pie>
+              <YAxis />
 
               <Tooltip />
 
-            </PieChart>
-
+              <Line
+                type="monotone"
+                dataKey="monto"
+                stroke="#00ff99"
+                strokeWidth={4}
+              />
+            </LineChart>
           </ResponsiveContainer>
 
         </div>
 
-        {/* BARRAS */}
-        <div className="bg-slate-950 p-6 rounded-3xl">
+        <div className="bg-black/40 p-8 rounded-3xl">
 
-          <h2 className="text-3xl font-bold mb-6">
+          <h2 className="text-5xl font-bold mb-8">
             Flujo Semanal
           </h2>
 
-          <ResponsiveContainer width="100%" height={350}>
+          <ResponsiveContainer
+            width="100%"
+            height={350}
+          >
+            <BarChart data={flujoSemanal}>
+              <CartesianGrid strokeDasharray="3 3" />
 
-            <BarChart data={data}>
+              <XAxis dataKey="name" />
 
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#334155"
-              />
-
-              <XAxis
-                dataKey="dia"
-                stroke="#94a3b8"
-              />
-
-              <YAxis stroke="#94a3b8" />
+              <YAxis />
 
               <Tooltip />
 
-              <Legend />
-
               <Bar
-                dataKey="ventas"
-                fill="#22c55e"
-                radius={[10, 10, 0, 0]}
+                dataKey="monto"
+                fill="#3b82f6"
               />
-
             </BarChart>
-
           </ResponsiveContainer>
 
         </div>
 
       </div>
 
-      {/* TABLA */}
-      <div className="bg-slate-950 p-6 rounded-3xl">
+      <div className="bg-black/40 p-8 rounded-3xl">
 
-        <h2 className="text-3xl font-bold mb-6">
-          Resumen Semanal
+        <h2 className="text-5xl font-bold mb-8">
+          Productos Más Vendidos
         </h2>
 
-        <table className="w-full">
+        <ResponsiveContainer
+          width="100%"
+          height={400}
+        >
+          <BarChart data={productosGrafico}>
+            <CartesianGrid strokeDasharray="3 3" />
 
-          <thead>
+            <XAxis dataKey="producto" />
 
-            <tr className="border-b border-slate-700">
+            <YAxis />
 
-              <th className="p-4 text-left">
-                Día
-              </th>
+            <Tooltip />
 
-              <th className="p-4 text-left">
-                Total Vendido
-              </th>
-
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            {data.map((item, index) => (
-
-              <tr
-                key={index}
-                className="border-b border-slate-800"
-              >
-
-                <td className="p-4">
-                  {item.dia}
-                </td>
-
-                <td className="p-4 text-green-400 font-bold">
-                  S/ {item.ventas}
-                </td>
-
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
+            <Bar
+              dataKey="cantidad"
+              fill="#06b6d4"
+            />
+          </BarChart>
+        </ResponsiveContainer>
 
       </div>
 
     </div>
   );
 }
-
-export default Ventas;
