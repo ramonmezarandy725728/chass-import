@@ -106,16 +106,70 @@ export default function Entradas() {
             required
           />
 
-          <input
-            type="text"
-            placeholder="Producto"
+          <select
+  value={producto}
+  onChange={(e) =>
+    setProducto(e.target.value)
+  }
+  className="w-full bg-slate-900 p-4 rounded-xl text-white"
+>
+  <option value="">
+    Seleccionar Marca / Modelo
+  </option>
+
+  <option>iPhone 7</option>
+  <option>iPhone 7 Plus</option>
+
+  <option>iPhone 8</option>
+  <option>iPhone 8 Plus</option>
+
+  <option>iPhone X</option>
+  <option>iPhone XR</option>
+  <option>iPhone XS</option>
+  <option>iPhone XS Max</option>
+
+  <option>iPhone 11</option>
+  <option>iPhone 11 Pro</option>
+  <option>iPhone 11 Pro Max</option>
+
+  <option>iPhone 12</option>
+  <option>iPhone 12 Mini</option>
+  <option>iPhone 12 Pro</option>
+  <option>iPhone 12 Pro Max</option>
+
+  <option>iPhone 13</option>
+  <option>iPhone 13 Mini</option>
+  <option>iPhone 13 Pro</option>
+  <option>iPhone 13 Pro Max</option>
+
+  <option>iPhone 14</option>
+  <option>iPhone 14 Plus</option>
+  <option>iPhone 14 Pro</option>
+  <option>iPhone 14 Pro Max</option>
+
+  <option>iPhone 15</option>
+  <option>iPhone 15 Plus</option>
+  <option>iPhone 15 Pro</option>
+  <option>iPhone 15 Pro Max</option>
+
+  <option>iPhone 16</option>
+  <option>iPhone 16 Plus</option>
+  <option>iPhone 16 Pro</option>
+  <option>iPhone 16 Pro Max</option>
+
+  <option>iPhone 17</option>
+<option>iPhone 17 Plus</option>
+<option>iPhone 17 Pro</option>
+<option>iPhone 17 Pro Max</option>
+<option>iPhone 17 Air</option>
+</select>
             value={producto}
             onChange={(e) =>
               setProducto(e.target.value)
             }
             className="bg-slate-900 p-4 rounded-xl"
             required
-          />
+          /
 
           <input
             type="number"
