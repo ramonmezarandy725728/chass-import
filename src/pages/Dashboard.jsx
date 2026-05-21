@@ -254,9 +254,112 @@ export default function Dashboard() {
 
       </div>
 
-      <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+     <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
 
-       <div className="bg-slate-800 p-6 rounded-2xl shadow-lg">
+  <h2 className="text-2xl font-bold mb-6">
+    Últimos Movimientos
+  </h2>
+
+  <div className="space-y-4">
+
+    {[
+      ...entradas.map((e) => ({
+        tipo: "entrada",
+        fecha: e.fecha,
+        nombre: e.cliente,
+        detalle: e.producto,
+        monto: e.monto,
+        id: e.id,
+      })),
+
+      ...salidas.map((s) => ({
+        tipo: "salida",
+        fecha: s.fecha,
+        nombre: s.descripcion,
+        detalle: "Gasto registrado",
+        monto: s.monto,
+        id: s.id,
+      })),
+    ]
+
+      .sort(
+        (a, b) =>
+          new Date(b.fecha) -
+          new Date(a.fecha)
+      )
+
+      .slice(0, 8)
+
+      .map((movimiento) => (
+
+        <div
+          key={`${movimiento.tipo}-${movimiento.id}`}
+          className="bg-slate-700 p-4 rounded-xl flex justify-between items-center"
+        >
+
+          <div>
+
+            <p
+              className={`font-bold text-lg ${
+                movimiento.tipo ===
+                "entrada"
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
+
+              {movimiento.tipo ===
+              "entrada"
+                ? "Entrada"
+                : "Salida"}
+
+            </p>
+
+            <p className="text-white text-lg">
+
+              {movimiento.nombre}
+
+            </p>
+
+            <p className="text-gray-400">
+
+              {movimiento.detalle}
+
+            </p>
+
+            <p className="text-sm text-gray-500 mt-1">
+
+              {movimiento.fecha}
+
+            </p>
+
+          </div>
+
+          <p
+            className={`font-bold text-2xl ${
+              movimiento.tipo ===
+              "entrada"
+                ? "text-green-400"
+                : "text-red-400"
+            }`}
+          >
+
+            {movimiento.tipo ===
+            "entrada"
+              ? "+"
+              : "-"}
+
+            {" "}S/ {movimiento.monto}
+
+          </p>
+
+        </div>
+
+      ))}
+
+  </div>
+
+</div>
 
   <h2 className="text-2xl font-bold mb-6">
     Últimos Movimientos
