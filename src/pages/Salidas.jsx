@@ -157,42 +157,47 @@ export default function Salidas() {
 
           <tbody>
 
-            {salidas.map((salida) => (
+  {salidas.map((salida) => (
 
-              <tr
-                key={salida.id}
-                className="border-b border-slate-700 hover:bg-slate-700"
-              >
+    <tr
+      key={salida.id}
+      className="border-b border-slate-700"
+    >
 
-                <td className="p-3">
-                  {salida.fecha}
-                </td>
+      <td className="p-4">
+        {salida.fecha}
+      </td>
 
-                <td className="p-3">
-                  {salida.descripcion}
-                </td>
+      <td className="p-4">
+        {salida.descripcion}
+      </td>
 
-                <td className="p-3 text-red-400 font-bold">
-                  S/ {salida.monto}
-                  <td className="p-3">
+      <td className="p-4 text-red-400 font-bold">
+        S/ {salida.monto}
+      </td>
 
-  <button
-    onClick={() =>
-      eliminarSalida(salida.id)
-    }
-    className="bg-red-600 px-4 py-2 rounded-lg"
-  >
-    Eliminar
-  </button>
+      <td className="p-4">
 
-</td>
-                </td>
+        <button
+          onClick={() =>
+            eliminarSalida(
+              salida.id
+            )
+          }
+          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold"
+        >
 
-              </tr>
+          Eliminar
 
-            ))}
+        </button>
 
-          </tbody>
+      </td>
+
+    </tr>
+
+  ))}
+
+</tbody>
 
         </table>
 

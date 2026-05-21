@@ -215,51 +215,59 @@ export default function Entradas() {
 
           <tbody>
 
-            {entradas.map((entrada) => (
+  {entradas.map((entrada) => (
 
-              <tr
-                key={entrada.id}
-                className="border-b border-slate-700 hover:bg-slate-700"
-              >
+    <tr
+      key={entrada.id}
+      className="border-b border-slate-700"
+    >
 
-                <td className="p-3">
-                  {entrada.fecha}
-                </td>
+      <td className="p-4">
+        {entrada.fecha}
+      </td>
 
-                <td className="p-3">
-                  {entrada.cliente}
-                </td>
+      <td className="p-4">
+        {entrada.cliente}
+      </td>
 
-                <td className="p-3">
-                  {entrada.producto}
-                </td>
+      <td className="p-4">
+        {entrada.producto}
+      </td>
 
-                <td className="p-3">
-                  {entrada.cantidad}
-                </td>
+      <td className="p-4">
+        {entrada.cantidad}
+      </td>
 
-                <td className="p-3 text-green-400 font-bold">
-                  S/ {entrada.monto}
-                  <td className="p-3">
+      <td className="p-4 text-green-400 font-bold">
+        S/ {entrada.monto}
+      </td>
 
-  <button
-    onClick={() =>
-      eliminarEntrada(entrada.id)
-    }
-    className="bg-red-600 px-4 py-2 rounded-lg"
-  >
-    Eliminar
-  </button>
+      <td className="p-4">
 
-</td>
-                </td>
+        <div className="flex gap-2">
 
-              </tr>
+          <button
+            onClick={() =>
+              eliminarEntrada(
+                entrada.id
+              )
+            }
+            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold"
+          >
 
-            ))}
+            Eliminar
 
-          </tbody>
+          </button>
 
+        </div>
+
+      </td>
+
+    </tr>
+
+  ))}
+
+</tbody>
         </table>
 
       </div>
